@@ -1,0 +1,35 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "stuff", "stuff", "{1ABDD7C1-1F8D-402D-8692-3E4B66962DE0}"
+	ProjectSection(SolutionItems) = preProject
+		CHANGELOG.md = CHANGELOG.md
+		CONTRIBUTING.md = CONTRIBUTING.md
+		LICENSE.md = LICENSE.md
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rebus.MongoDb", "Rebus.MongoDb\Rebus.MongoDb.csproj", "{5102E171-2CED-4B6B-A8A5-8791F90C9797}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rebus.MongoDb.Tests", "Rebus.MongoDb.Tests\Rebus.MongoDb.Tests.csproj", "{4FA3FD37-73E7-4E6A-9416-3A3673EE7250}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5102E171-2CED-4B6B-A8A5-8791F90C9797}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5102E171-2CED-4B6B-A8A5-8791F90C9797}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5102E171-2CED-4B6B-A8A5-8791F90C9797}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5102E171-2CED-4B6B-A8A5-8791F90C9797}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4FA3FD37-73E7-4E6A-9416-3A3673EE7250}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4FA3FD37-73E7-4E6A-9416-3A3673EE7250}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4FA3FD37-73E7-4E6A-9416-3A3673EE7250}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4FA3FD37-73E7-4E6A-9416-3A3673EE7250}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
