@@ -1,4 +1,4 @@
-# Rebus.TODO
+# Rebus.MongoDb
 
 Provides a MongoDB persistence implementations for [Rebus](https://github.com/rebus-org/Rebus) for
 
