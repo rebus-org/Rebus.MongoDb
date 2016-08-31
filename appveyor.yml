@@ -1,2 +1,5 @@
+services:
+  - mongodb
+
 before_build:
   - nuget restore
