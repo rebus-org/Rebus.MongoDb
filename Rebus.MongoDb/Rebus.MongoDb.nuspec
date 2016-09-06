@@ -14,14 +14,14 @@
     <tags>rebus mongodb</tags>
     <iconUrl>https://github.com/mookid8000/Rebus/raw/master/artwork/little_rebusbus2_copy-200x200.png</iconUrl>
     <dependencies>
-      <dependency id="Rebus" version="2.0.0-a5" />
+      <dependency id="Rebus" version="2.0.0-a9" />
       <dependency id="MongoDB.Bson" version="2.2.4" />
       <dependency id="MongoDB.Driver" version="2.2.4" />
       <dependency id="MongoDB.Driver.Core" version="2.2.4" />
     </dependencies>
   </metadata>
   <files>
-    <file src="bin\Release\Rebus.MongoDb.dll" target="lib\NET45" />
-    <file src="bin\Release\Rebus.MongoDb.xml" target="lib\NET45" />
+    <file src="bin\Release\Rebus.MongoDb.dll" target="lib\NET452" />
+    <file src="bin\Release\Rebus.MongoDb.xml" target="lib\NET452" />
   </files>
 </package>
