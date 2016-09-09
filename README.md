@@ -1,6 +1,6 @@
 # Rebus.MongoDb
 
-Provides a MongoDB persistence implementations for [Rebus](https://github.com/rebus-org/Rebus) for
+Provides MongoDB persistence implementations for [Rebus](https://github.com/rebus-org/Rebus) for
 
 * sagas
 * subscriptions
