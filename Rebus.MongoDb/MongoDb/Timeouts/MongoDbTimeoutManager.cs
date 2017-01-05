@@ -28,7 +28,7 @@ namespace Rebus.MongoDb.Timeouts
             if (database == null) throw new ArgumentNullException(nameof(database));
             if (collectionName == null) throw new ArgumentNullException(nameof(collectionName));
             if (rebusLoggerFactory == null) throw new ArgumentNullException(nameof(rebusLoggerFactory));
-            _log = rebusLoggerFactory.GetCurrentClassLogger();
+            _log = rebusLoggerFactory.GetLogger<MongoDbTimeoutManager>();
             _timeouts = database.GetCollection<Timeout>(collectionName);
         }
 

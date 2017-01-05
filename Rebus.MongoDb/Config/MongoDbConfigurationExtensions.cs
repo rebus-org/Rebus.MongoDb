@@ -1,7 +1,6 @@
 ﻿using System;
 using MongoDB.Driver;
 using Rebus.Auditing.Sagas;
-using Rebus.Config;
 using Rebus.Logging;
 using Rebus.MongoDb.Sagas;
 using Rebus.MongoDb.Subscriptions;
@@ -10,7 +9,7 @@ using Rebus.Sagas;
 using Rebus.Subscriptions;
 using Rebus.Timeouts;
 
-namespace Rebus.MongoDb
+namespace Rebus.Config
 {
     /// <summary>
     /// Configuration extensions for MongoDB persistence
