@@ -1,5 +1,17 @@
+image: Visual Studio 2017
+
 services:
   - mongodb
 
+shallow_clone: true
+
+cache:
+  - packages -> **\packages.config
+  - '%LocalAppData%\NuGet\Cache'
+
 before_build:
-  - nuget restore
+  - appveyor-retry dotnet restore -v Minimal
+
+build_script:
+  - dotnet build Rebus.MongoDb -c Release 
+  - dotnet build Rebus.MongoDb.Tests -c Release 

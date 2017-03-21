@@ -36,7 +36,10 @@ namespace Rebus.MongoDb.Timeouts
         public async Task Defer(DateTimeOffset approximateDueTime, Dictionary<string, string> headers, byte[] body)
         {
             var newTimeout = new Timeout(headers, body, approximateDueTime.UtcDateTime);
-            _log.Debug("Deferring message with ID {0} until {1} (doc ID {2})", headers.GetValue(Headers.MessageId), approximateDueTime, newTimeout.Id);
+
+            _log.Debug("Deferring message with ID {messageId} until {dueTime} (doc ID {documentId})", 
+                headers.GetValue(Headers.MessageId), approximateDueTime, newTimeout.Id);
+
             await _timeouts.InsertOneAsync(newTimeout).ConfigureAwait(false);
         }
 
@@ -66,7 +69,8 @@ namespace Rebus.MongoDb.Timeouts
             var dueMessages = dueTimeouts
                 .Select(timeout => new DueMessage(timeout.Headers, timeout.Body, async () =>
                 {
-                    _log.Debug("Completing timeout for message with ID {0} (doc ID {1})", timeout.Headers.GetValue(Headers.MessageId), timeout.Id);
+                    _log.Debug("Completing timeout for message with ID {messageId} (doc ID {documentId})", 
+                        timeout.Headers.GetValue(Headers.MessageId), timeout.Id);
 
                     var filter = Builders<Timeout>.Filter.Eq(t => t.Id, timeout.Id);
 
@@ -83,7 +87,7 @@ namespace Rebus.MongoDb.Timeouts
                 {
                     try
                     {
-                        _log.Debug("Timeout for message with ID {0} (doc ID {1}) was not completed - will set due time back to {2} now",
+                        _log.Debug("Timeout for message with ID {messageId} (doc ID {documentId}) was not completed - will set due time back to {dueTime} now",
                             timeoutNotCompleted.Headers.GetValue(Headers.MessageId), timeoutNotCompleted.Id,
                             timeoutNotCompleted.OriginalDueTimeUtc);
 
@@ -94,7 +98,7 @@ namespace Rebus.MongoDb.Timeouts
                     }
                     catch (Exception exception)
                     {
-                        _log.Warn("Could not set due time for timeout with doc ID {0}: {1}", timeoutNotCompleted.Id, exception);
+                        _log.Warn("Could not set due time for timeout with doc ID {documentId}: {exception}", timeoutNotCompleted.Id, exception);
                     }
                 }
             });

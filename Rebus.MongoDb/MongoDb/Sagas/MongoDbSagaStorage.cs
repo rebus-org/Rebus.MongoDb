@@ -81,8 +81,7 @@ namespace Rebus.MongoDb.Sagas
 
             if (!result.IsModifiedCountAvailable || result.ModifiedCount != 1)
             {
-                throw new ConcurrencyException("Saga data {0} with ID {1} in collection {2} could not be updated!",
-                    sagaData.GetType(), sagaData.Id, collection.CollectionNamespace);
+                throw new ConcurrencyException($"Saga data {sagaData.GetType()} with ID {sagaData.Id} in collection {collection.CollectionNamespace} could not be updated!");
             }
         }
 
@@ -95,8 +94,7 @@ namespace Rebus.MongoDb.Sagas
 
             if (result.DeletedCount != 1)
             {
-                throw new ConcurrencyException("Saga data {0} with ID {1} in collection {2} could not be deleted", 
-                    sagaData.GetType(), sagaData.Id, collection.CollectionNamespace);
+                throw new ConcurrencyException($"Saga data {sagaData.GetType()} with ID {sagaData.Id} in collection {collection.CollectionNamespace} could not be deleted");
             }
         }
 
@@ -110,7 +108,7 @@ namespace Rebus.MongoDb.Sagas
             }
             catch (Exception exception)
             {
-                throw new ApplicationException($"Could not get MongoCollection for saga data of type {sagaDataType}", exception);
+                throw new RebusApplicationException(exception, $"Could not get MongoCollection for saga data of type {sagaDataType}");
             }
         }
     }

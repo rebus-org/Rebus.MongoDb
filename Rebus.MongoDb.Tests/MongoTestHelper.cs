@@ -1,7 +1,6 @@
 ﻿using System;
 using MongoDB.Bson;
 using MongoDB.Driver;
-using Rebus.Tests;
 using Rebus.Tests.Contracts;
 
 namespace Rebus.MongoDb.Tests

@@ -4,6 +4,7 @@ using MongoDB.Bson;
 using MongoDB.Driver;
 using Rebus.Auditing.Sagas;
 using Rebus.Sagas;
+// ReSharper disable RedundantAnonymousTypePropertyName
 
 namespace Rebus.MongoDb.Sagas
 {
@@ -36,6 +37,5 @@ namespace Rebus.MongoDb.Sagas
 
             await _snapshots.InsertOneAsync(document);
         }
-
     }
 }
