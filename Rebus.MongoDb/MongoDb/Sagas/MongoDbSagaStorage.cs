@@ -96,6 +96,8 @@ namespace Rebus.MongoDb.Sagas
             {
                 throw new ConcurrencyException($"Saga data {sagaData.GetType()} with ID {sagaData.Id} in collection {collection.CollectionNamespace} could not be deleted");
             }
+
+            sagaData.Revision++;
         }
 
         IMongoCollection<BsonDocument> GetCollection(Type sagaDataType)
