@@ -47,8 +47,9 @@
     <None Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="mongodb.driver" Version="2.4.3" />
-    <PackageReference Include="rebus" Version="4.0.0-b12" />
+    <PackageReference Include="mongodb.driver" Version="2.4.4" />
+    <PackageReference Include="MongoDB.Driver.GridFS" Version="2.4.4" />
+    <PackageReference Include="rebus" Version="4.0.0-b20" />
   </ItemGroup>
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
     <Exec Command="$(ProjectDir)..\scripts\patch_assemblyinfo.cmd $(ProjectDir)" />

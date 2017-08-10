@@ -1,7 +1,9 @@
 ﻿using System;
 using MongoDB.Driver;
 using Rebus.Auditing.Sagas;
+using Rebus.DataBus;
 using Rebus.Logging;
+using Rebus.MongoDb.DataBus;
 using Rebus.MongoDb.Sagas;
 using Rebus.MongoDb.Subscriptions;
 using Rebus.MongoDb.Timeouts;
@@ -16,6 +18,18 @@ namespace Rebus.Config
     /// </summary>
     public static class MongoDbConfigurationExtensions
     {
+        /// <summary>
+        /// Configures Rebus to store data bus attachments in MongoDB
+        /// </summary>
+        public static void StoreInMongoDb(this StandardConfigurer<IDataBusStorage> configurer, IMongoDatabase mongoDatabase, string bucketName)
+        {
+            if (configurer == null) throw new ArgumentNullException(nameof(configurer));
+            if (mongoDatabase == null) throw new ArgumentNullException(nameof(mongoDatabase));
+            if (bucketName == null) throw new ArgumentNullException(nameof(bucketName));
+
+            configurer.Register(c => new MongoDbDataBusStorage(mongoDatabase, bucketName));
+        }
+
         /// <summary>
         /// Configures Rebus to store saga data snapshots in MongoDB
         /// </summary>
