@@ -16,9 +16,8 @@
 
 * Update to Rebus 3
 
-## 4.0.0-b06
+## 4.0.0
 
 * Update to Rebus 4
 * Add .NET Core support
-* Update deps to b20
 * Add data bus storage based on GridFS
