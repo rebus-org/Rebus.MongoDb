@@ -60,6 +60,8 @@ namespace Rebus.MongoDb.Sagas
 
             var result = await collection.Find(criteria).FirstOrDefaultAsync().ConfigureAwait(false);
 
+            if (result == null) return null;
+
             return (ISagaData) BsonSerializer.Deserialize(result, sagaDataType);
         }
 
