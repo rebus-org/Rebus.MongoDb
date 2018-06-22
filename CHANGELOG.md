@@ -22,6 +22,7 @@
 * Add .NET Core support
 * Add data bus storage based on GridFS
 
-## 5.0.0-b01
+## 5.0.0-b02
 
 * Update to Rebus 5.0.0-b14 because it has a more BSON serialization-friendly `IdempotencyData`
+* Add .NET Standard 2.0 as target
