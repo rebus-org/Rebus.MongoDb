@@ -53,7 +53,8 @@ namespace Rebus.Config
 
             configurer.Register(c =>
             {
-                var sagaStorage = new MongoDbSagaStorage(mongoDatabase, collectionNameResolver);
+                var rebusLoggerFactory = c.Get<IRebusLoggerFactory>();
+                var sagaStorage = new MongoDbSagaStorage(mongoDatabase, rebusLoggerFactory, collectionNameResolver);
 
                 return sagaStorage;
             });

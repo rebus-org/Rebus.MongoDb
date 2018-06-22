@@ -35,7 +35,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Rebus.MongoDb\Rebus.MongoDb.csproj" />
     <PackageReference Include="nunit" Version="3.7.1" />
-    <PackageReference Include="rebus" Version="4.0.0" />
+    <PackageReference Include="rebus" Version="5.0.0-b14" />
     <PackageReference Include="rebus.tests.contracts" Version="4.0.0" />
   </ItemGroup>
 </Project>

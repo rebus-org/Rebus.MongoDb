@@ -1,4 +1,5 @@
 ﻿using MongoDB.Driver;
+using Rebus.Logging;
 using Rebus.MongoDb.Sagas;
 using Rebus.Sagas;
 using Rebus.Tests.Contracts.Sagas;
@@ -13,7 +14,7 @@ namespace Rebus.MongoDb.Tests.Sagas
         {
             _mongoDatabase = MongoTestHelper.GetMongoDatabase();
 
-            return new MongoDbSagaStorage(_mongoDatabase);
+            return new MongoDbSagaStorage(_mongoDatabase, new ConsoleLoggerFactory(colored: false));
         }
 
         public void CleanUp()
