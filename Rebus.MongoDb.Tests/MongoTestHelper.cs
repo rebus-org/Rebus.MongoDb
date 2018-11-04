@@ -11,7 +11,7 @@ namespace Rebus.MongoDb.Tests
 
         public static MongoUrl GetUrl()
         {
-            var suffix = TestConfig.Suffix;
+            var suffix = TestConfig.Suffix + "_" + TargetFramework;
 
             var databaseName = $"rebus2_test_{suffix}".TrimEnd('_');
 
@@ -20,6 +20,20 @@ namespace Rebus.MongoDb.Tests
             Console.WriteLine("Using MongoDB {0}", mongoUrl);
 
             return mongoUrl;
+        }
+
+        public static string TargetFramework
+        {
+            get
+            {
+                #if NET45
+                return "net45";
+                #elif NET46
+                return "net46";
+                #elif NETCOREAPP21
+                return "netcoreapp21";
+                #endif
+            }
         }
 
         public static IMongoDatabase GetMongoDatabase()
