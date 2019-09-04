@@ -26,3 +26,7 @@
 
 * Update to Rebus 5.0.0 because it has a more BSON serialization-friendly `IdempotencyData`
 * Add .NET Standard 2.0 and .NET 4.6 as targets
+
+## 6.0.0-b1
+
+* Update Rebus dep to 6

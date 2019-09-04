@@ -9,7 +9,9 @@ using Rebus.MongoDb.Subscriptions;
 using Rebus.MongoDb.Timeouts;
 using Rebus.Sagas;
 using Rebus.Subscriptions;
+using Rebus.Time;
 using Rebus.Timeouts;
+// ReSharper disable UnusedMember.Global
 
 namespace Rebus.Config
 {
@@ -27,7 +29,7 @@ namespace Rebus.Config
             if (mongoDatabase == null) throw new ArgumentNullException(nameof(mongoDatabase));
             if (bucketName == null) throw new ArgumentNullException(nameof(bucketName));
 
-            configurer.Register(c => new MongoDbDataBusStorage(mongoDatabase, bucketName));
+            configurer.Register(c => new MongoDbDataBusStorage(c.Get<IRebusTime>(), mongoDatabase, bucketName));
         }
 
         /// <summary>
@@ -87,7 +89,8 @@ namespace Rebus.Config
             configurer.Register(c =>
             {
                 var rebusLoggerFactory = c.Get<IRebusLoggerFactory>();
-                var subscriptionStorage = new MongoDbTimeoutManager(mongoDatabase, collectionName, rebusLoggerFactory);
+                var rebusTime = c.Get<IRebusTime>();
+                var subscriptionStorage = new MongoDbTimeoutManager(rebusTime, mongoDatabase, collectionName, rebusLoggerFactory);
 
                 return subscriptionStorage;
             });

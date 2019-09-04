@@ -17,17 +17,19 @@ namespace Rebus.MongoDb.Timeouts
     /// </summary>
     public class MongoDbTimeoutManager : ITimeoutManager
     {
+        readonly IRebusTime _rebusTime;
         readonly IMongoCollection<Timeout> _timeouts;
         readonly ILog _log;
 
         /// <summary>
         /// Constructs the timeout manager
         /// </summary>
-        public MongoDbTimeoutManager(IMongoDatabase database, string collectionName, IRebusLoggerFactory rebusLoggerFactory)
+        public MongoDbTimeoutManager(IRebusTime rebusTime, IMongoDatabase database, string collectionName, IRebusLoggerFactory rebusLoggerFactory)
         {
             if (database == null) throw new ArgumentNullException(nameof(database));
             if (collectionName == null) throw new ArgumentNullException(nameof(collectionName));
             if (rebusLoggerFactory == null) throw new ArgumentNullException(nameof(rebusLoggerFactory));
+            _rebusTime = rebusTime ?? throw new ArgumentNullException(nameof(rebusTime));
             _log = rebusLoggerFactory.GetLogger<MongoDbTimeoutManager>();
             _timeouts = database.GetCollection<Timeout>(collectionName);
         }
@@ -46,7 +48,7 @@ namespace Rebus.MongoDb.Timeouts
         /// <inheritdoc />
         public async Task<DueMessagesResult> GetDueMessages()
         {
-            var now = RebusTime.Now.UtcDateTime;
+            var now = _rebusTime.Now.UtcDateTime;
             var dueTimeouts = new List<Timeout>();
 
             while (dueTimeouts.Count < 100)

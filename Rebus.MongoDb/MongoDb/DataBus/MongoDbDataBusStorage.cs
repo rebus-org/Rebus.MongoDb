@@ -15,6 +15,7 @@ namespace Rebus.MongoDb.DataBus
     /// </summary>
     public class MongoDbDataBusStorage : IDataBusStorage
     {
+        readonly IRebusTime _rebusTime;
         readonly IMongoDatabase _database;
         readonly string _bucketName;
         readonly GridFSBucket _bucket;
@@ -22,9 +23,10 @@ namespace Rebus.MongoDb.DataBus
         /// <summary>
         /// Creates the storage using the given Mongo database
         /// </summary>
-        public MongoDbDataBusStorage(IMongoDatabase database, string bucketName)
+        public MongoDbDataBusStorage(IRebusTime rebusTime, IMongoDatabase database, string bucketName)
         {
             if (string.IsNullOrWhiteSpace(bucketName)) throw new ArgumentException("Please pass a valid MongoDB GridFS bucket name", nameof(bucketName));
+            _rebusTime = rebusTime ?? throw new ArgumentNullException(nameof(rebusTime));
             _database = database ?? throw new ArgumentNullException(nameof(database));
 
             _bucketName = bucketName;
@@ -41,7 +43,7 @@ namespace Rebus.MongoDb.DataBus
         {
             var metadataDocument = metadata?.ToBsonDocument() ?? new BsonDocument();
 
-            metadataDocument[MetadataKeys.SaveTime] = RebusTime.Now.ToString("o");
+            metadataDocument[MetadataKeys.SaveTime] = _rebusTime.Now.ToString("o");
 
             await _bucket.UploadFromStreamAsync(id, source, new GridFSUploadOptions
             {
@@ -56,7 +58,7 @@ namespace Rebus.MongoDb.DataBus
             {
                 var downloadStream = await _bucket.OpenDownloadStreamByNameAsync(id);
 
-                await UpdateLastReadTime(id, RebusTime.Now);
+                await UpdateLastReadTime(id, _rebusTime.Now);
 
                 return downloadStream;
             }
@@ -81,9 +83,6 @@ namespace Rebus.MongoDb.DataBus
                     metadata[kvp.Name] = kvp.Value.ToString();
                 }
 
-                // Assert.That<string>(dictionary["Rbs2DataBusLength"], (IResolveConstraint) Is.EqualTo((object) "3"));
-                // Assert.That<string>(dictionary["Rbs2DataBusSaveTime"], (IResolveConstraint)Is.EqualTo((object)fakeTime.ToString("O")));
-
                 metadata[MetadataKeys.Length] = result.Length.ToString();
 
                 return metadata;
@@ -92,6 +91,29 @@ namespace Rebus.MongoDb.DataBus
             {
                 throw new ArgumentException($"Could not get metadata for attachment with ID '{id}'", exception);
             }
+        }
+
+        /// <inheritdoc />
+        public async Task Delete(string id)
+        {
+            try
+            {
+                var result = await GetGridFsFileInfo(id);
+                
+                await _bucket.DeleteAsync(result.Id);
+            }
+            catch (GridFSFileNotFoundException)
+            {
+            }
+            catch (Exception exception)
+            {
+                throw new ArgumentException($"Could not delete attachment with ID '{id}'", exception);
+            }
+        }
+
+        public IEnumerable<string> Query(TimeRange readTime = null, TimeRange saveTime = null)
+        {
+            throw new NotImplementedException();
         }
 
         async Task UpdateLastReadTime(string id, DateTimeOffset now)
