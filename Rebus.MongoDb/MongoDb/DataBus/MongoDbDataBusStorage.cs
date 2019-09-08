@@ -69,6 +69,7 @@ namespace Rebus.MongoDb.DataBus
             }
         }
 
+        /// <inheritdoc />
         public IEnumerable<string> Query(TimeRange readTime = null, TimeRange saveTime = null)
         {
             //var filter = new BsonDocument();
@@ -101,8 +102,8 @@ namespace Rebus.MongoDb.DataBus
                         if (DateTimeOffset.TryParseExact(readTimeString.AsString, "o", CultureInfo.InvariantCulture,
                             DateTimeStyles.RoundtripKind, out var readTimeValue))
                         {
-                            if (readTime?.From != null && readTimeValue < readTime?.From) continue;
-                            if (readTime?.To != null && readTimeValue >= readTime?.To) continue;
+                            if (readTime?.From != null && readTimeValue < readTime.From) continue;
+                            if (readTime?.To != null && readTimeValue >= readTime.To) continue;
                         }
                     }
 
@@ -111,8 +112,8 @@ namespace Rebus.MongoDb.DataBus
                         if (DateTimeOffset.TryParseExact(saveTimeString.AsString, "o", CultureInfo.InvariantCulture,
                             DateTimeStyles.RoundtripKind, out var saveTimeValue))
                         {
-                            if (saveTime?.From != null && saveTimeValue < saveTime?.From) continue;
-                            if (saveTime?.To != null && saveTimeValue >= saveTime?.To) continue;
+                            if (saveTime?.From != null && saveTimeValue < saveTime.From) continue;
+                            if (saveTime?.To != null && saveTimeValue >= saveTime.To) continue;
                         }
                     }
 
