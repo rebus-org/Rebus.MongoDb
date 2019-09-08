@@ -6,6 +6,5 @@ namespace Rebus.MongoDb.Tests.DataBus
     [TestFixture]
     public class TestDataBusStorage : GeneralDataBusStorageTests<MongoDbDataBusStorageFactory>
     {
-        
     }
 }

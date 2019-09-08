@@ -29,7 +29,11 @@ namespace Rebus.Config
             if (mongoDatabase == null) throw new ArgumentNullException(nameof(mongoDatabase));
             if (bucketName == null) throw new ArgumentNullException(nameof(bucketName));
 
-            configurer.Register(c => new MongoDbDataBusStorage(c.Get<IRebusTime>(), mongoDatabase, bucketName));
+            configurer.OtherService<MongoDbDataBusStorage>().Register(c => new MongoDbDataBusStorage(c.Get<IRebusTime>(), mongoDatabase, bucketName));
+
+            configurer.Register(c => c.Get<MongoDbDataBusStorage>());
+
+            configurer.OtherService<IDataBusStorageManagement>().Register(c => c.Get<MongoDbDataBusStorage>());
         }
 
         /// <summary>

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
 using MongoDB.Bson;
@@ -13,7 +14,7 @@ namespace Rebus.MongoDb.DataBus
     /// <summary>
     /// Implementation of <see cref="IDataBusStorage"/> that uses MongoDB to store attachments
     /// </summary>
-    public class MongoDbDataBusStorage : IDataBusStorage
+    public class MongoDbDataBusStorage : IDataBusStorage, IDataBusStorageManagement
     {
         readonly IRebusTime _rebusTime;
         readonly IMongoDatabase _database;
@@ -68,6 +69,58 @@ namespace Rebus.MongoDb.DataBus
             }
         }
 
+        public IEnumerable<string> Query(TimeRange readTime = null, TimeRange saveTime = null)
+        {
+            //var filter = new BsonDocument();
+
+            //if (readTime != null)
+            //{
+            //    filter.Add($"metadata.{MetadataKeys.ReadTime}", new BsonDocument
+            //    {
+            //        {"$gte", BsonValue.Create(readTime.From?.UtcDateTime ?? DateTime.MinValue)},
+            //        {"$lt", BsonValue.Create(readTime.To?.UtcDateTime ?? DateTime.MaxValue)}
+            //    });
+            //}
+            //if (saveTime != null)
+            //{
+            //    filter.Add($"metadata.{MetadataKeys.SaveTime}", new BsonDocument
+            //    {
+            //        {"$gte", BsonValue.Create(saveTime.From?.UtcDateTime ?? DateTime.MinValue)},
+            //        {"$lt", BsonValue.Create(saveTime.To?.UtcDateTime ?? DateTime.MaxValue)}
+            //    });
+            //}
+
+            using (var cursor = _bucket.Find(new ExpressionFilterDefinition<GridFSFileInfo>(i => true)))
+            {
+                foreach (var doc in cursor.ToEnumerable())
+                {
+                    var metadata = doc.Metadata;
+
+                    if (metadata.TryGetValue(MetadataKeys.ReadTime, out var readTimeString))
+                    {
+                        if (DateTimeOffset.TryParseExact(readTimeString.AsString, "o", CultureInfo.InvariantCulture,
+                            DateTimeStyles.RoundtripKind, out var readTimeValue))
+                        {
+                            if (readTime?.From != null && readTimeValue < readTime?.From) continue;
+                            if (readTime?.To != null && readTimeValue >= readTime?.To) continue;
+                        }
+                    }
+
+                    if (metadata.TryGetValue(MetadataKeys.SaveTime, out var saveTimeString))
+                    {
+                        if (DateTimeOffset.TryParseExact(saveTimeString.AsString, "o", CultureInfo.InvariantCulture,
+                            DateTimeStyles.RoundtripKind, out var saveTimeValue))
+                        {
+                            if (saveTime?.From != null && saveTimeValue < saveTime?.From) continue;
+                            if (saveTime?.To != null && saveTimeValue >= saveTime?.To) continue;
+                        }
+                    }
+
+                    yield return doc.Filename;
+                }
+            }
+        }
+
         /// <inheritdoc />
         public async Task<Dictionary<string, string>> ReadMetadata(string id)
         {
@@ -99,7 +152,7 @@ namespace Rebus.MongoDb.DataBus
             try
             {
                 var result = await GetGridFsFileInfo(id);
-                
+
                 await _bucket.DeleteAsync(result.Id);
             }
             catch (GridFSFileNotFoundException)
@@ -109,11 +162,6 @@ namespace Rebus.MongoDb.DataBus
             {
                 throw new ArgumentException($"Could not delete attachment with ID '{id}'", exception);
             }
-        }
-
-        public IEnumerable<string> Query(TimeRange readTime = null, TimeRange saveTime = null)
-        {
-            throw new NotImplementedException();
         }
 
         async Task UpdateLastReadTime(string id, DateTimeOffset now)
@@ -132,9 +180,14 @@ namespace Rebus.MongoDb.DataBus
 
         async Task<GridFSFileInfo> GetGridFsFileInfo(string id)
         {
-            var cursor = await _bucket.FindAsync(new ExpressionFilterDefinition<GridFSFileInfo>(f => f.Filename == id));
-            var result = await cursor.FirstOrDefaultAsync();
-            return result;
+            var filter = new ExpressionFilterDefinition<GridFSFileInfo>(f => f.Filename == id);
+
+            using (var cursor = await _bucket.FindAsync(filter))
+            {
+                var result = await cursor.FirstOrDefaultAsync();
+
+                return result;
+            }
         }
     }
 }
