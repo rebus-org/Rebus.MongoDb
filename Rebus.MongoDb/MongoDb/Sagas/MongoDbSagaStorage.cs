@@ -108,7 +108,8 @@ namespace Rebus.MongoDb.Sagas
         {
             var collection = GetCollection(sagaData.GetType());
 
-            var result = await collection.DeleteManyAsync(new BsonDocument("_id", sagaData.Id)).ConfigureAwait(false);
+            var criteria = Builders<BsonDocument>.Filter.Eq("_id", sagaData.Id);
+            var result = await collection.DeleteManyAsync(criteria).ConfigureAwait(false);
 
             if (result.DeletedCount != 1)
             {
