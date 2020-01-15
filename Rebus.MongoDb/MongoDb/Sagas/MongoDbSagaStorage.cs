@@ -1,6 +1,6 @@
-﻿    using System;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using MongoDB.Bson;
@@ -12,6 +12,7 @@ using Rebus.Bus;
 using Rebus.Logging;
 using Rebus.Messages;
 using Rebus.Sagas.Idempotent;
+// ReSharper disable InconsistentlySynchronizedField
 
 namespace Rebus.MongoDb.Sagas
 {
@@ -23,6 +24,7 @@ namespace Rebus.MongoDb.Sagas
         /// <summary>
         /// Static lock object here to guard registration across all bus instances
         /// </summary>
+        readonly ConcurrentDictionary<Type, Lazy<Func<Task>>> _collectionInitializers = new ConcurrentDictionary<Type, Lazy<Func<Task>>>();
         static readonly object ClassMapRegistrationLock = new object();
         readonly IMongoDatabase _mongoDatabase;
         readonly Func<Type, string> _collectionNameResolver;
@@ -52,17 +54,21 @@ namespace Rebus.MongoDb.Sagas
         /// <inheritdoc />
         public async Task<ISagaData> Find(Type sagaDataType, string propertyName, object propertyValue)
         {
-            var collection = GetCollection(sagaDataType);
+            var collection = await GetCollection(sagaDataType);
 
-            if (propertyName == "Id") propertyName = "_id";
+            var criteria = propertyName == nameof(ISagaData.Id)
+                ? new BsonDocument { { "_id", BsonValue.Create(propertyValue) } }
+                : new BsonDocument { { propertyName, BsonValue.Create(propertyValue) } };
 
-            var criteria = new BsonDocument(propertyName, BsonValue.Create(propertyValue));
+            //var criteria = propertyName == nameof(ISagaData.Id)
+            //    ? Builders<BsonDocument>.Filter.Eq("_id", propertyValue)
+            //    : Builders<BsonDocument>.Filter.Eq(propertyName, propertyValue);
 
             var result = await collection.Find(criteria).FirstOrDefaultAsync().ConfigureAwait(false);
 
             if (result == null) return null;
 
-            return (ISagaData) BsonSerializer.Deserialize(result, sagaDataType);
+            return (ISagaData)BsonSerializer.Deserialize(result, sagaDataType);
         }
 
         /// <inheritdoc />
@@ -78,7 +84,7 @@ namespace Rebus.MongoDb.Sagas
                 throw new InvalidOperationException($"Attempted to insert saga data with ID {sagaData.Id} and revision {sagaData.Revision}, but revision must be 0 on first insert!");
             }
 
-            var collection = GetCollection(sagaData.GetType());
+            var collection = await GetCollection(sagaData.GetType(), correlationProperties);
 
             var document = sagaData.ToBsonDocument();
 
@@ -88,10 +94,12 @@ namespace Rebus.MongoDb.Sagas
         /// <inheritdoc />
         public async Task Update(ISagaData sagaData, IEnumerable<ISagaCorrelationProperty> correlationProperties)
         {
-            var collection = GetCollection(sagaData.GetType());
+            var collection = await GetCollection(sagaData.GetType(), correlationProperties);
 
-            var criteria = Builders<BsonDocument>.Filter.And(Builders<BsonDocument>.Filter.Eq("_id", sagaData.Id),
-                Builders<BsonDocument>.Filter.Eq("Revision", sagaData.Revision));
+            var criteria = Builders<BsonDocument>.Filter.And(
+                Builders<BsonDocument>.Filter.Eq("_id", sagaData.Id),
+                Builders<BsonDocument>.Filter.Eq(nameof(ISagaData.Revision), sagaData.Revision)
+            );
 
             sagaData.Revision++;
 
@@ -106,9 +114,11 @@ namespace Rebus.MongoDb.Sagas
         /// <inheritdoc />
         public async Task Delete(ISagaData sagaData)
         {
-            var collection = GetCollection(sagaData.GetType());
+            var collection = await GetCollection(sagaData.GetType());
 
-            var result = await collection.DeleteManyAsync(new BsonDocument("_id", sagaData.Id)).ConfigureAwait(false);
+            var criteria = Builders<BsonDocument>.Filter.Eq("_id", sagaData.Id);
+
+            var result = await collection.DeleteManyAsync(criteria).ConfigureAwait(false);
 
             if (result.DeletedCount != 1)
             {
@@ -118,13 +128,34 @@ namespace Rebus.MongoDb.Sagas
             sagaData.Revision++;
         }
 
-        IMongoCollection<BsonDocument> GetCollection(Type sagaDataType)
+        async Task<IMongoCollection<BsonDocument>> GetCollection(Type sagaDataType, IEnumerable<ISagaCorrelationProperty> correlationProperties = null)
         {
             try
             {
                 var collectionName = _collectionNameResolver(sagaDataType);
+                var mongoCollection = _mongoDatabase.GetCollection<BsonDocument>(collectionName);
 
-                return _mongoDatabase.GetCollection<BsonDocument>(collectionName);
+                if (correlationProperties == null) return mongoCollection;
+
+                async Task CreateIndexes()
+                {
+                    _log.Info("Initializing index for saga data {type} in collection {collectionName}", sagaDataType, collectionName);
+
+                    foreach (var correlationProperty in correlationProperties)
+                    {
+                        _log.Debug("Creating index on property {propertyName} of {type}", correlationProperty.PropertyName, sagaDataType);
+
+                        var index = new BsonDocument { { correlationProperty.PropertyName, 1 } };
+                        var indexDef = new BsonDocumentIndexKeysDefinition<BsonDocument>(index);
+                        await mongoCollection.Indexes.CreateOneAsync(indexDef, new CreateIndexOptions { Unique = true });
+                    }
+                }
+
+                var initializer = _collectionInitializers.GetOrAdd(sagaDataType, _ => new Lazy<Func<Task>>(() => CreateIndexes));
+
+                await initializer.Value();
+
+                return mongoCollection;
             }
             catch (Exception exception)
             {
@@ -132,7 +163,7 @@ namespace Rebus.MongoDb.Sagas
             }
         }
 
-            void RegisterClassMaps()
+        void RegisterClassMaps()
         {
             lock (ClassMapRegistrationLock)
             {
@@ -173,5 +204,5 @@ namespace Rebus.MongoDb.Sagas
                 });
             }
         }
-}
+    }
 }
