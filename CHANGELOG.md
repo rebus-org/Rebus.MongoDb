@@ -30,4 +30,6 @@
 ## 5.1.0-b1
 
 * Fix uniqueness of correlation properties
-* Fix customization of serialization of saga data's ID
+* Fix customization of serialization of saga data's ID - thanks [cgehrmann]
+
+[cgehrmann]: https://github.com/cgehrmann
