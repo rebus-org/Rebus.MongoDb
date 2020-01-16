@@ -32,7 +32,7 @@
 * Fix uniqueness of correlation properties
 * Fix customization of serialization of saga data's ID - thanks [cgehrmann]
 
-## 6.0.0-b2
+## 6.0.0-b3
 
 * Update Rebus dep to 6
 * Add data bus management implementation
