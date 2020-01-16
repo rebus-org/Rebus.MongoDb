@@ -27,7 +27,7 @@
 * Update to Rebus 5.0.0 because it has a more BSON serialization-friendly `IdempotencyData`
 * Add .NET Standard 2.0 and .NET 4.6 as targets
 
-## 5.1.0-b1
+## 5.1.0
 
 * Fix uniqueness of correlation properties
 * Fix customization of serialization of saga data's ID - thanks [cgehrmann]
