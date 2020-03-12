@@ -29,7 +29,7 @@
 * Update Rebus dep to 6
 * Add data bus management implementation
 
-## 6.0.1
+## 6.0.2
 * Add automatic guard against accidentally using a customized BSON serializer that interferes with Rebus. Unfortunately this can only be done at runtime, resulting in an `BsonSchemaValidationException` the first time a problematic saga data is encountered
 
 [cgehrmann]: https://github.com/cgehrmann

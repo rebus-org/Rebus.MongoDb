@@ -147,26 +147,33 @@ namespace Rebus.MongoDb.Sagas
                 });
 
                 if (correlationProperties == null) return mongoCollection;
-                
+
                 async Task CreateIndexes()
                 {
-                    _log.Info("Initializing index for saga data {type} in collection {collectionName}", sagaDataType, collectionName);
+                    _log.Info("Initializing index for saga data {type} in collection {collectionName}", sagaDataType,
+                        collectionName);
 
                     foreach (var correlationProperty in correlationProperties)
                     {
-                        _log.Debug("Creating index on property {propertyName} of {type}", correlationProperty.PropertyName, sagaDataType);
+                        _log.Debug("Creating index on property {propertyName} of {type}",
+                            correlationProperty.PropertyName, sagaDataType);
 
-                        var index = new BsonDocument { { correlationProperty.PropertyName, 1 } };
+                        var index = new BsonDocument {{correlationProperty.PropertyName, 1}};
                         var indexDef = new BsonDocumentIndexKeysDefinition<BsonDocument>(index);
-                        await mongoCollection.Indexes.CreateOneAsync(indexDef, new CreateIndexOptions { Unique = true });
+                        await mongoCollection.Indexes.CreateOneAsync(indexDef, new CreateIndexOptions {Unique = true});
                     }
                 }
 
-                var initializer = _collectionInitializers.GetOrAdd(sagaDataType, _ => new Lazy<Func<Task>>(() => CreateIndexes));
+                var initializer =
+                    _collectionInitializers.GetOrAdd(sagaDataType, _ => new Lazy<Func<Task>>(() => CreateIndexes));
 
                 await initializer.Value();
 
                 return mongoCollection;
+            }
+            catch (BsonSchemaValidationException)
+            {
+                throw;
             }
             catch (Exception exception)
             {
