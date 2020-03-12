@@ -2,13 +2,16 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using MongoDB.Bson;
+using MongoDB.Bson.IO;
 using MongoDB.Driver;
 using Rebus.Exceptions;
 using Rebus.Sagas;
 using MongoDB.Bson.Serialization;
 using Rebus.Bus;
+using Rebus.Internals;
 using Rebus.Logging;
 using Rebus.Messages;
 using Rebus.Sagas.Idempotent;
@@ -128,6 +131,8 @@ namespace Rebus.MongoDb.Sagas
             sagaData.Revision++;
         }
 
+        readonly ConcurrentDictionary<Type, object> _verifiedSagaDataTypes = new ConcurrentDictionary<Type, object>();
+
         async Task<IMongoCollection<BsonDocument>> GetCollection(Type sagaDataType, IEnumerable<ISagaCorrelationProperty> correlationProperties = null)
         {
             try
@@ -135,8 +140,14 @@ namespace Rebus.MongoDb.Sagas
                 var collectionName = _collectionNameResolver(sagaDataType);
                 var mongoCollection = _mongoDatabase.GetCollection<BsonDocument>(collectionName);
 
-                if (correlationProperties == null) return mongoCollection;
+                var dummy = _verifiedSagaDataTypes.GetOrAdd(sagaDataType, _ =>
+                {
+                    VerifyBsonSerializerFor(sagaDataType);
+                    return null;
+                });
 
+                if (correlationProperties == null) return mongoCollection;
+                
                 async Task CreateIndexes()
                 {
                     _log.Info("Initializing index for saga data {type} in collection {collectionName}", sagaDataType, collectionName);
@@ -160,6 +171,39 @@ namespace Rebus.MongoDb.Sagas
             catch (Exception exception)
             {
                 throw new RebusApplicationException(exception, $"Could not get MongoCollection for saga data of type {sagaDataType}");
+            }
+        }
+
+        static void VerifyBsonSerializerFor(Type sagaDataType)
+        {
+            Exception GetException(string error) => new BsonSchemaValidationException(sagaDataType, $@"The test serialization of {sagaDataType} failed - {error}.
+
+This is most likely because the BSON serializer (which is global!) has been customized in a way that interferes with Rebus.
+
+If you customize how your saga data is serialized, you need to ensure that 
+
+* 'Id' from your saga data is mapped to '_id'
+* 'Revision' from your saga data is mapped to 'Revision'
+
+in BSON documents.");
+
+            var testInstance = Activator.CreateInstance(sagaDataType);
+
+            var target = new BsonDocument();
+
+            using (var writer = new BsonDocumentWriter(target))
+            {
+                BsonSerializer.Serialize(writer, sagaDataType, testInstance);
+            }
+
+            if (!target.Contains("_id"))
+            {
+                throw GetException("could not find '_id' in the serialied BSON document");
+            }
+
+            if (!target.Contains("Revision"))
+            {
+                throw GetException("could not find 'Revision' in the serialied BSON document");
             }
         }
 
