@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using MongoDB.Bson;
@@ -159,10 +160,44 @@ namespace Rebus.MongoDb.Sagas
                         _log.Debug("Creating index on property {propertyName} of {type}",
                             correlationProperty.PropertyName, sagaDataType);
 
-                        var index = new BsonDocument {{correlationProperty.PropertyName, 1}};
+                        var index = new BsonDocument { { correlationProperty.PropertyName, 1 } };
                         var indexDef = new BsonDocumentIndexKeysDefinition<BsonDocument>(index);
-                        await mongoCollection.Indexes.CreateOneAsync(indexDef, new CreateIndexOptions {Unique = true});
+                        await mongoCollection.Indexes.CreateOneAsync(indexDef, new CreateIndexOptions { Unique = true });
                     }
+
+                    try
+                    {
+                        // try to remove any previously created indexes on 'Id'
+                        //
+                        // we're after this:
+                        // {{ "v" : 2, "unique" : true, "key" : { "Id" : 1 }, "name" : "Id_1", "ns" : "rebus2_test__net45.SomeSagaData" }}
+                        using (var cursor = await mongoCollection.Indexes.ListAsync())
+                        {
+                            while (await cursor.MoveNextAsync())
+                            {
+                                var indexes = cursor.Current;
+
+                                foreach (var index in indexes)
+                                {
+                                    var isUnique = index.Contains("unique") && index["unique"].AsBoolean;
+
+                                    var hasSingleIdKey = index.Contains("key")
+                                                         && index["key"].AsBsonDocument.Contains("Id")
+                                                         && index["key"].AsBsonDocument.Count() == 1
+                                                         && index["key"].AsBsonDocument["Id"].AsInt32 == 1;
+
+                                    if (isUnique && hasSingleIdKey)
+                                    {
+                                        // this is it!
+                                        var name = index["name"].AsString;
+
+                                        await mongoCollection.Indexes.DropOneAsync(name);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    catch { } //<ignore error here, because it is probably a race condition
                 }
 
                 var initializer =
