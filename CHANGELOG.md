@@ -29,7 +29,8 @@
 * Update Rebus dep to 6
 * Add data bus management implementation
 
-## 6.0.2
+## 6.0.3
 * Add automatic guard against accidentally using a customized BSON serializer that interferes with Rebus. Unfortunately this can only be done at runtime, resulting in an `BsonSchemaValidationException` the first time a problematic saga data is encountered
+* Fix bug that would result in accidentally creating an index on the 'Id' field, which is called '_id' in MongoDB documents and is already indexed
 
 [cgehrmann]: https://github.com/cgehrmann

@@ -2,7 +2,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.IO;
@@ -11,7 +10,6 @@ using Rebus.Exceptions;
 using Rebus.Sagas;
 using MongoDB.Bson.Serialization;
 using Rebus.Bus;
-using Rebus.Internals;
 using Rebus.Logging;
 using Rebus.Messages;
 using Rebus.Sagas.Idempotent;
@@ -155,6 +153,9 @@ namespace Rebus.MongoDb.Sagas
 
                     foreach (var correlationProperty in correlationProperties)
                     {
+                        // skip this, because there's already an index on 'Id', and it's mapped to '_id'
+                        if (correlationProperty.PropertyName == nameof(ISagaData.Id)) continue;
+
                         _log.Debug("Creating index on property {propertyName} of {type}",
                             correlationProperty.PropertyName, sagaDataType);
 
