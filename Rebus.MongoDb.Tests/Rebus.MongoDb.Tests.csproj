@@ -24,7 +24,7 @@
     <DefineConstants>RELEASE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net45' ">
   	<DefineConstants>NET45</DefineConstants>
@@ -34,6 +34,9 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.1' ">
   	<DefineConstants>NETCOREAPP21</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net45|AnyCPU'">
+    <WarningsAsErrors />
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Rebus.MongoDb\Rebus.MongoDb.csproj" />
