@@ -33,4 +33,7 @@
 * Add automatic guard against accidentally using a customized BSON serializer that interferes with Rebus. Unfortunately this can only be done at runtime, resulting in an `BsonSchemaValidationException` the first time a problematic saga data is encountered
 * Fix bug that would result in accidentally creating an index on the 'Id' field, which is called '_id' in MongoDB documents and is already indexed
 
+## 6.0.4
+* Fix bug that would result in indexes being initialized over and over
+
 [cgehrmann]: https://github.com/cgehrmann

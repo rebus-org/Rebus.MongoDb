@@ -26,7 +26,7 @@ namespace Rebus.MongoDb.Sagas
         /// <summary>
         /// Static lock object here to guard registration across all bus instances
         /// </summary>
-        readonly ConcurrentDictionary<Type, Lazy<Func<Task>>> _collectionInitializers = new ConcurrentDictionary<Type, Lazy<Func<Task>>>();
+        readonly ConcurrentDictionary<Type, Lazy<Task>> _collectionInitializers = new ConcurrentDictionary<Type, Lazy<Task>>();
         static readonly object ClassMapRegistrationLock = new object();
         readonly IMongoDatabase _mongoDatabase;
         readonly Func<Type, string> _collectionNameResolver;
@@ -201,9 +201,9 @@ namespace Rebus.MongoDb.Sagas
                 }
 
                 var initializer =
-                    _collectionInitializers.GetOrAdd(sagaDataType, _ => new Lazy<Func<Task>>(() => CreateIndexes));
+                    _collectionInitializers.GetOrAdd(sagaDataType, _ => new Lazy<Task>(CreateIndexes));
 
-                await initializer.Value();
+                await initializer.Value;
 
                 return mongoCollection;
             }
