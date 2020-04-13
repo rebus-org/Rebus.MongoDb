@@ -31,7 +31,9 @@ namespace Rebus.MongoDb.Transport
     ///   even if processing it result in errors: the message is lost.
     /// - In SQL implementation there's a context around each Operation that opens up a transaction
     ///   and complete it when the context gets committed, or roll back it in sace of error (con context
-    ///   disposal).
+    ///   disposal), it might need an explicit ACK to delete the message from the queue.
+    ///   we also need to mark a message as "in-flight" / "In-process" so we can tell the queue
+    ///   that the message was already in processing.
     /// 
     /// With these limitations
     /// This kind of transport will work only if everything runs on the same machine, there's no
