@@ -1,4 +1,6 @@
 ﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
+using System.Collections.Generic;
 
 namespace Rebus.MongoDb.Transport
 {
@@ -15,7 +17,7 @@ namespace Rebus.MongoDb.Transport
     {
         /// <summary>
         /// identity column in SQL server (it gives sorting)
-        /// maybe an ObjectId is enough ? if ot consider a counter collection
+        /// maybe an ObjectId is enough ? if not consider a counter collection
         /// </summary>
         public ObjectId Id { get; set; }
 
@@ -31,7 +33,8 @@ namespace Rebus.MongoDb.Transport
         /// </summary>
         public long Visibile { get; set; }
 
-        public object Headers { get; set; }
+        [BsonDictionaryOptions(MongoDB.Bson.Serialization.Options.DictionaryRepresentation.ArrayOfArrays)]
+        public Dictionary<string, string> Headers { get; set; }
 
         public object Body { get; set; }
     }
