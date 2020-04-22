@@ -36,4 +36,7 @@
 ## 6.0.4
 * Fix bug that would result in indexes being initialized over and over
 
+## 6.0.5
+* Make automatic index creation on saga properties optional
+
 [cgehrmann]: https://github.com/cgehrmann

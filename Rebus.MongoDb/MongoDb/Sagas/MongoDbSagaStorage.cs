@@ -15,6 +15,7 @@ using Rebus.Logging;
 using Rebus.Messages;
 using Rebus.Sagas.Idempotent;
 // ReSharper disable InconsistentlySynchronizedField
+// ReSharper disable EmptyGeneralCatchClause
 
 namespace Rebus.MongoDb.Sagas
 {
@@ -28,8 +29,9 @@ namespace Rebus.MongoDb.Sagas
         /// </summary>
         readonly ConcurrentDictionary<Type, Lazy<Task>> _collectionInitializers = new ConcurrentDictionary<Type, Lazy<Task>>();
         static readonly object ClassMapRegistrationLock = new object();
-        readonly IMongoDatabase _mongoDatabase;
         readonly Func<Type, string> _collectionNameResolver;
+        readonly bool _automaticallyCreateIndexes;
+        readonly IMongoDatabase _mongoDatabase;
         readonly ILog _log;
 
         /// <summary>
@@ -37,10 +39,11 @@ namespace Rebus.MongoDb.Sagas
         /// be used to get names for each type of saga data that needs to be persisted. By default, the saga data's <see cref="MemberInfo.Name"/>
         /// will be used.
         /// </summary>
-        public MongoDbSagaStorage(IMongoDatabase mongoDatabase, IRebusLoggerFactory rebusLoggerFactory, Func<Type, string> collectionNameResolver = null)
+        public MongoDbSagaStorage(IMongoDatabase mongoDatabase, IRebusLoggerFactory rebusLoggerFactory, Func<Type, string> collectionNameResolver = null, bool automaticallyCreateIndexes = true)
         {
             if (rebusLoggerFactory == null) throw new ArgumentNullException(nameof(rebusLoggerFactory));
             _mongoDatabase = mongoDatabase ?? throw new ArgumentNullException(nameof(mongoDatabase));
+            _automaticallyCreateIndexes = automaticallyCreateIndexes;
             _collectionNameResolver = collectionNameResolver ?? (type => type.Name);
             _log = rebusLoggerFactory.GetLogger<MongoDbSagaStorage>();
         }
@@ -149,8 +152,9 @@ namespace Rebus.MongoDb.Sagas
 
                 async Task CreateIndexes()
                 {
-                    _log.Info("Initializing index for saga data {type} in collection {collectionName}", sagaDataType,
-                        collectionName);
+                    if (!_automaticallyCreateIndexes) return;
+
+                    _log.Info("Initializing index for saga data {type} in collection {collectionName}", sagaDataType, collectionName);
 
                     foreach (var correlationProperty in correlationProperties)
                     {
@@ -200,8 +204,7 @@ namespace Rebus.MongoDb.Sagas
                     catch { } //<ignore error here, because it is probably a race condition
                 }
 
-                var initializer =
-                    _collectionInitializers.GetOrAdd(sagaDataType, _ => new Lazy<Task>(CreateIndexes));
+                var initializer = _collectionInitializers.GetOrAdd(sagaDataType, _ => new Lazy<Task>(CreateIndexes));
 
                 await initializer.Value;
 

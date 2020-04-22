@@ -52,7 +52,7 @@ namespace Rebus.Config
         /// Configures Rebus to use MongoDB to store sagas, using the specified collection name resolver function. If the collection name resolver is omitted,
         /// collection names will be determined by using the <code>Name</code> property of the saga data's <see cref="Type"/>
         /// </summary>
-        public static void StoreInMongoDb(this StandardConfigurer<ISagaStorage> configurer, IMongoDatabase mongoDatabase, Func<Type, string> collectionNameResolver = null)
+        public static void StoreInMongoDb(this StandardConfigurer<ISagaStorage> configurer, IMongoDatabase mongoDatabase, Func<Type, string> collectionNameResolver = null, bool automaticallyCreateIndexes = true)
         {
             if (configurer == null) throw new ArgumentNullException(nameof(configurer));
             if (mongoDatabase == null) throw new ArgumentNullException(nameof(mongoDatabase));
@@ -60,7 +60,7 @@ namespace Rebus.Config
             configurer.Register(c =>
             {
                 var rebusLoggerFactory = c.Get<IRebusLoggerFactory>();
-                var sagaStorage = new MongoDbSagaStorage(mongoDatabase, rebusLoggerFactory, collectionNameResolver);
+                var sagaStorage = new MongoDbSagaStorage(mongoDatabase, rebusLoggerFactory, collectionNameResolver, automaticallyCreateIndexes);
 
                 return sagaStorage;
             });
