@@ -36,9 +36,15 @@ namespace Rebus.MongoDb.Transport
         /// </summary>
         public DateTime Visibile { get; set; }
 
+        /// <summary>
+        /// HEaders
+        /// </summary>
         [BsonDictionaryOptions(MongoDB.Bson.Serialization.Options.DictionaryRepresentation.ArrayOfArrays)]
         public Dictionary<string, string> Headers { get; set; }
 
+        /// <summary>
+        /// Body
+        /// </summary>
         public byte[] Body { get; set; }
     }
 }

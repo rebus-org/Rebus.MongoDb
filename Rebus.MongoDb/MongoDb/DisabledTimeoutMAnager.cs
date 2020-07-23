@@ -9,7 +9,7 @@ namespace Rebus.MongoDb
 {
     internal class DisabledTimeoutManager : ITimeoutManager
     {
-        public async Task Defer(DateTimeOffset approximateDueTime, Dictionary<string, string> headers, byte[] body)
+        public Task Defer(DateTimeOffset approximateDueTime, Dictionary<string, string> headers, byte[] body)
         {
             var messageIdToPrint = headers.GetValueOrNull(Headers.MessageId) ?? "<no message ID>";
 

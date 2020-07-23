@@ -36,6 +36,11 @@ namespace Rebus.MongoDb.Tests
             }
         }
 
+        internal static void DropCollection(string collectionName)
+        {
+            GetMongoDatabase().DropCollection(collectionName);
+        }
+
         public static IMongoDatabase GetMongoDatabase()
         {
             return GetMongoDatabase(GetMongoClient());
