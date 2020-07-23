@@ -15,7 +15,7 @@ namespace Rebus.MongoDb.Tests
 
             var databaseName = $"rebus2_test_{suffix}".TrimEnd('_');
 
-            var mongoUrl = new MongoUrl($"mongodb://localhost/{databaseName}");
+            var mongoUrl = new MongoUrl($"mongodb://admin:123456##@localhost/{databaseName}?authSource=admin");
 
             Console.WriteLine("Using MongoDB {0}", mongoUrl);
 
@@ -28,8 +28,8 @@ namespace Rebus.MongoDb.Tests
             {
                 #if NET45
                 return "net45";
-                #elif NET46
-                return "net46";
+                #elif NET461
+                return "net461";
                 #elif NETCOREAPP21
                 return "netcoreapp21";
                 #endif
