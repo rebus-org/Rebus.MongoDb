@@ -3,7 +3,6 @@ using Rebus.Config;
 using Rebus.Extensions;
 using Rebus.Logging;
 using Rebus.Messages;
-using Rebus.MongoDb.Tests;
 using Rebus.MongoDb.Transport;
 using Rebus.Tests.Contracts;
 using Rebus.Threading.TaskParallelLibrary;
@@ -34,7 +33,7 @@ namespace Rebus.MongoDb.Tests.Transport
             var consoleLoggerFactory = new ConsoleLoggerFactory(false);
             var asyncTaskFactory = new TplAsyncTaskFactory(consoleLoggerFactory);
 
-            MongoDbTransportOptions mongoDbTransportOptions = 
+            MongoDbTransportOptions mongoDbTransportOptions =
                 new MongoDbTransportOptions(MongoTestHelper.GetUrl())
                     .SetInputQueueName(QueueName);
             _transport = new MongoDbTransport(

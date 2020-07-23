@@ -10,6 +10,7 @@ using Rebus.Threading;
 using Rebus.Time;
 using Rebus.Transport;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -213,7 +214,12 @@ namespace Rebus.MongoDb.Transport
                 var insertedRecord = await InnerSend(destinationAddressToUse, message).ConfigureAwait(false);
                 if (context != null)
                 {
-                    context.OnAborted(c => _collectionQueue.DeleteOne(Builders<TransportMessageMongoDb>.Filter.Eq("_id", insertedRecord.Id)));
+                    context.OnAborted(_ =>
+                    {
+                        var collection = GetCollectionFromDestination(destinationAddress);
+                        collection.DeleteOne(Builders<TransportMessageMongoDb>.Filter.Eq(r => r.Id, insertedRecord.Id));
+                        _log.Info("Rollback insertion of message {0}", insertedRecord.Id);
+                    });
                 }
             }
             catch (Exception e)
@@ -333,7 +339,7 @@ namespace Rebus.MongoDb.Transport
         /// <param name="message">Message to be sent</param>
         protected async Task<TransportMessageMongoDb> InnerSend(string destinationAddress, TransportMessage message)
         {
-            var destinationQueue = _database.GetCollection<TransportMessageMongoDb>(destinationAddress);
+            IMongoCollection<TransportMessageMongoDb> destinationQueue = GetCollectionFromDestination(destinationAddress);
 
             var headers = message.Headers.Clone();
 
@@ -351,6 +357,19 @@ namespace Rebus.MongoDb.Transport
 
             await destinationQueue.InsertOneAsync(record).ConfigureAwait(false);
             return record;
+        }
+
+        private ConcurrentDictionary<String, IMongoCollection<TransportMessageMongoDb>> _collectionCache = new ConcurrentDictionary<string, IMongoCollection<TransportMessageMongoDb>>();
+
+        private IMongoCollection<TransportMessageMongoDb> GetCollectionFromDestination(string destinationAddress)
+        {
+            if (_collectionCache.TryGetValue(destinationAddress, out var connection))
+            {
+                return connection;
+            }
+            connection = _database.GetCollection<TransportMessageMongoDb>(destinationAddress);
+            _collectionCache[destinationAddress] = connection;
+            return connection;
         }
 
         private TimeSpan GetInitialVisibilityDelay(IDictionary<string, string> headers)

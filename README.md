@@ -8,6 +8,14 @@ Provides MongoDB persistence implementations for [Rebus](https://github.com/rebu
 * subscriptions
 * timeouts
 
+# Local nuget pack
+
+To pack the package just run 
+
+```
+dotnet pack Rebus.MongoDb\Rebus.MongoDb.csproj -o \nuget -c release /p:PackageVersion=6.0.1006 /p:AssemblyVersion=6.0.0 /p:FileVersion=6.0.0 /p:InformationalVersion=6.0.0-sha
+```
+
 ![](https://raw.githubusercontent.com/rebus-org/Rebus/master/artwork/little_rebusbus2_copy-200x200.png)
 
 ---
