@@ -1,41 +1,44 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using System;
 using System.Collections.Generic;
 
 namespace Rebus.MongoDb.Transport
 {
     /// <summary>
-    /// Represents a message that needs to be delivered
-    /// 
+    /// <para>Represents a message that needs to be delivered</para>
+    /// <para>
     /// indexes to create: 
     /// priority, visible, expiration, id
     /// expiration
-    /// 
-    /// todo: rename "QueuedMessage"
+    /// </para>
+    /// <para>todo: rename "QueuedMessage"</para>
     /// </summary>
-    public class TransportMessageDb
+    public class TransportMessageMongoDb
     {
         /// <summary>
-        /// identity column in SQL server (it gives sorting)
-        /// maybe an ObjectId is enough ? if not consider a counter collection
+        /// Standard objectid id.
         /// </summary>
         public ObjectId Id { get; set; }
 
+        /// <summary>
+        /// This allows for priority dequeueing
+        /// </summary>
         public int Priority { get; set; }
 
         /// <summary>
         /// expiration time in ticks
         /// </summary>
-        public long Expiration { get; set; }
+        public DateTime Expiration { get; set; }
 
         /// <summary>
         /// Visible time in ticks
         /// </summary>
-        public long Visibile { get; set; }
+        public DateTime Visibile { get; set; }
 
         [BsonDictionaryOptions(MongoDB.Bson.Serialization.Options.DictionaryRepresentation.ArrayOfArrays)]
         public Dictionary<string, string> Headers { get; set; }
 
-        public object Body { get; set; }
+        public byte[] Body { get; set; }
     }
 }
