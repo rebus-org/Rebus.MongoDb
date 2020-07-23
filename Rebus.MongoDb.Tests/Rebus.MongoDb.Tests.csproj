@@ -40,13 +40,6 @@
     <None Remove="Transport\Contract\**" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Remove="Transport\TestSqlServerTransport.cs" />
-    <Compile Remove="Transport\TestSqlServerTransportAutoDelete.cs" />
-    <Compile Remove="Transport\TestSqlServerTransportCleanup.cs" />
-    <Compile Remove="Transport\TestSqlServerTransportMessageOrdering.cs" />
-    <Compile Remove="Transport\TestSqlTransportReceivePerformance.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\Rebus.MongoDb\Rebus.MongoDb.csproj" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.6.1" />
     <PackageReference Include="nunit" Version="3.12.0" />

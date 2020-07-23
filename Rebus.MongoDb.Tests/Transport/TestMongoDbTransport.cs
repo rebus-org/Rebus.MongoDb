@@ -1,43 +1,47 @@
-﻿using System;
+﻿using NUnit.Framework;
+using Rebus.Config;
+using Rebus.Extensions;
+using Rebus.Logging;
+using Rebus.Messages;
+using Rebus.MongoDb.Tests;
+using Rebus.MongoDb.Transport;
+using Rebus.Tests.Contracts;
+using Rebus.Threading.TaskParallelLibrary;
+using Rebus.Time;
+using Rebus.Transport;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using NUnit.Framework;
-using Rebus.Config;
-using Rebus.Extensions;
-using Rebus.Logging;
-using Rebus.Messages;
-using Rebus.SqlServer.Transport;
-using Rebus.Tests.Contracts;
-using Rebus.Threading.TaskParallelLibrary;
-using Rebus.Time;
-using Rebus.Transport;
 
-namespace Rebus.SqlServer.Tests.Transport
+namespace Rebus.MongoDb.Tests.Transport
 {
-    [TestFixture, Category(Categories.SqlServer)]
-    public class TestSqlServerTransport : FixtureBase
+    [TestFixture, Category(MongoTestHelper.TestCategory)]
+    public class TestMongoDbTransport : FixtureBase
     {
-        const string QueueName = "input";
-        SqlServerTransport _transport;
-        CancellationToken _cancellationToken;
+        private const string QueueName = "input";
+        private MongoDbTransport _transport;
+        private CancellationToken _cancellationToken;
 
         protected override void SetUp()
         {
-            SqlTestHelper.DropAllTables();
+            MongoTestHelper.DropMongoDatabase();
 
             var rebusTime = new DefaultRebusTime();
             var consoleLoggerFactory = new ConsoleLoggerFactory(false);
-            var connectionProvider = new DbConnectionProvider(SqlTestHelper.ConnectionString, consoleLoggerFactory);
             var asyncTaskFactory = new TplAsyncTaskFactory(consoleLoggerFactory);
 
-            _transport = new SqlServerTransport(connectionProvider, QueueName, consoleLoggerFactory, asyncTaskFactory, rebusTime, new SqlServerTransportOptions(connectionProvider));
-            _transport.EnsureTableIsCreated();
-
-            Using(_transport);
+            MongoDbTransportOptions mongoDbTransportOptions = 
+                new MongoDbTransportOptions(MongoTestHelper.GetUrl())
+                    .SetInputQueueName(QueueName);
+            _transport = new MongoDbTransport(
+                consoleLoggerFactory,
+                asyncTaskFactory,
+                rebusTime,
+                mongoDbTransportOptions);
 
             _transport.Initialize();
 
@@ -143,12 +147,12 @@ namespace Rebus.SqlServer.Tests.Transport
             }
         }
 
-        void AssertMessageIsRecognized(TransportMessage transportMessage)
+        private void AssertMessageIsRecognized(TransportMessage transportMessage)
         {
             Assert.That(transportMessage.Headers.GetValue("recognizzle"), Is.EqualTo("hej"));
         }
 
-        static TransportMessage RecognizableMessage(int id = 0)
+        private static TransportMessage RecognizableMessage(int id = 0)
         {
             var headers = new Dictionary<string, string>
             {

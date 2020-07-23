@@ -12,12 +12,12 @@ using Rebus.Transport;
 namespace Rebus.Config
 {
     /// <summary>
-    /// Configuration extensions for the SQL transport
+    /// Configuration extensions for the MongoDb transport
     /// </summary>
     public static class MongoDbTransportConfigurationExtensions
     {
         /// <summary>
-        /// Configures Rebus to use SQL Server as its transport
+        /// Configures Rebus to use MongoDb as its transport
         /// </summary>
         /// <param name="configurer">Static to extend</param>
         /// <param name="transportOptions">Options controlling the transport setup</param>
@@ -27,10 +27,13 @@ namespace Rebus.Config
             MongoDbTransportOptions transportOptions,
             string inputQueueName)
         {
+            if (!string.IsNullOrEmpty(inputQueueName))
+            {
+                transportOptions.SetInputQueueName(inputQueueName);
+            }
             return Configure(
                     configurer,
-                    (context, inputQueue) => new MongoDbTransport(
-                        inputQueue,
+                    (context) => new MongoDbTransport(
                         context.Get<IRebusLoggerFactory>(),
                         context.Get<IAsyncTaskFactory>(),
                         context.Get<IRebusTime>(),
@@ -41,17 +44,17 @@ namespace Rebus.Config
         }
 
         /// <summary>
-        /// Configures Rebus to use SQLServer as its transport in "one-way client mode" (i.e. as a send-only endpoint). 
+        /// Configures Rebus to use MongoDb as its transport in "one-way client mode" (i.e. as a send-only endpoint). 
         /// </summary>
         /// <param name="configurer"></param>
         /// <param name="transportOptions"></param>
         /// <returns></returns>
-        public static MongoDbTransportOptions UseMongoDbAsOneWayClient(this StandardConfigurer<ITransport> configurer, MongoDbTransportOptions transportOptions)
+        public static MongoDbTransportOptions UseMongoDbAsOneWayClient(
+            this StandardConfigurer<ITransport> configurer, MongoDbTransportOptions transportOptions)
         {
             return Configure(
                     configurer,
-                    (context, inputQueue) => new MongoDbTransport(
-                        inputQueue,
+                    (context) => new MongoDbTransport(
                         context.Get<IRebusLoggerFactory>(),
                         context.Get<IAsyncTaskFactory>(),
                         context.Get<IRebusTime>(),
@@ -62,8 +65,7 @@ namespace Rebus.Config
         }
 
         private delegate MongoDbTransport TransportFactoryDelegate(
-            IResolutionContext context,
-            string inputQueueName);
+            IResolutionContext context);
 
         private static TTransportOptions Configure<TTransportOptions>(
             StandardConfigurer<ITransport> configurer,
@@ -77,7 +79,7 @@ namespace Rebus.Config
                         OneWayClientBackdoor.ConfigureOneWayClient(configurer);
                     }
 
-                    return transportFactory(context, transportOptions.InputQueueName);
+                    return transportFactory(context);
                 }
             );
 

@@ -25,6 +25,12 @@ namespace Rebus.Config
             ConnectionString = connectionString;
         }
 
+        public MongoDbTransportOptions SetInputQueueName(string inputQueueName)
+        {
+            this.InputQueueName = inputQueueName;
+            return this;
+        }
+
         /// <summary>
         /// Connection string.
         /// </summary>
