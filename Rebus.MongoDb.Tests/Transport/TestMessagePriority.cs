@@ -14,7 +14,7 @@ using System.Linq;
 using System.Threading.Tasks;
 #pragma warning disable 1998
 
-namespace Rebus.SqlServer.Tests.Transport
+namespace Rebus.MongoDb.Tests.Transport
 {
     [TestFixture]
     public class TestMessagePriority : FixtureBase

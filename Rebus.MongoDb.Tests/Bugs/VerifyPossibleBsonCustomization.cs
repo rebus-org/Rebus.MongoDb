@@ -9,6 +9,7 @@ using NUnit.Framework;
 using Rebus.Activation;
 using Rebus.Config;
 using Rebus.Logging;
+using Rebus.MongoDb.Tests.Helpers;
 using Rebus.Sagas;
 using Rebus.Tests.Contracts;
 using Rebus.Tests.Contracts.Utilities;
@@ -19,16 +20,20 @@ using Rebus.Transport.InMem;
 namespace Rebus.MongoDb.Tests.Bugs
 {
     [TestFixture]
-    [Explicit("Messes with the global BSON serializer registry, so unfortunately it cannot be executed as part of the normal test suite")]
     public class VerifyPossibleBsonCustomization : FixtureBase
     {
         [Test]
         public async Task VerifyNiceExceptionWhenSerializerHasBeenImproperlyCustomized()
         {
+            if (BsonClassMap.IsClassMapRegistered(typeof(SagaData)))
+            {
+                MongoDbTestHelper.BsonClassMapHelper.Unregister<SagaData>();
+            }
             BsonClassMap.RegisterClassMap<SagaData>(c =>
             {
                 c.MapField(d => d.Id);
             });
+
 
             var activator = Using(new BuiltinHandlerActivator());
             var listLoggerFactory = new ListLoggerFactory();

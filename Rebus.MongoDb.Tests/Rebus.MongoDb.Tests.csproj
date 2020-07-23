@@ -35,17 +35,11 @@
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net45|AnyCPU'">
     <WarningsAsErrors />
   </PropertyGroup>
+  
   <ItemGroup>
     <Compile Remove="Transport\Contract\**" />
     <EmbeddedResource Remove="Transport\Contract\**" />
     <None Remove="Transport\Contract\**" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="Transport\TestSqlServerTransport.cs" />
-    <Compile Remove="Transport\TestSqlServerTransportAutoDelete.cs" />
-    <Compile Remove="Transport\TestSqlServerTransportCleanup.cs" />
-    <Compile Remove="Transport\TestSqlServerTransportMessageOrdering.cs" />
-    <Compile Remove="Transport\TestSqlTransportReceivePerformance.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Rebus.MongoDb\Rebus.MongoDb.csproj" />

@@ -6,7 +6,6 @@ using Rebus.Exceptions;
 using Rebus.Extensions;
 using Rebus.Logging;
 using Rebus.Messages;
-using Rebus.Serialization;
 using Rebus.Threading;
 using Rebus.Time;
 using Rebus.Transport;
@@ -27,24 +26,12 @@ namespace Rebus.MongoDb.Transport
     /// </para>
     /// <para>
     /// also:
-    /// - there are no transactions, so once a message is extracted from the queue, it's gone
-    ///   even if processing it result in errors: the message is lost.
-    /// - In SQL implementation there's a context around each Operation that opens up a transaction
-    ///   and complete it when the context gets committed, or roll back it in sace of error (con context
-    ///   disposal), it might need an explicit ACK to delete the message from the queue.
-    ///   we also need to mark a message as "in-flight" / "In-process" so we can tell the queue
-    ///   that the message was already in processing.
-    /// </para>
-    /// <para>
-    /// With these limitations
-    /// This kind of transport will work only if everything runs on the same machine, there's no
-    /// way to guarantee clock sync, not a good way to insert and query with the database server time
+    /// - there are no native transactions so we need to rely on some in-memory storage to actively
+    /// support transaction.
     /// </para>
     /// </summary>
-    public class MongoDbTransport : ITransport, IInitializable, IDisposable
+    public class MongoDbTransport : ITransport, IInitializable
     {
-        private static readonly HeaderSerializer HeaderSerializer = new HeaderSerializer();
-
         /// <summary>
         /// When a message is sent to this address, it will be deferred into the future!
         /// </summary>
@@ -75,22 +62,19 @@ namespace Rebus.MongoDb.Transport
         private readonly MongoDbTransportOptions _mongoDbTransportOptions;
         private readonly AsyncBottleneck _bottleneck = new AsyncBottleneck(20);
         private readonly ILog _log;
-        private bool _disposed;
 
         private readonly IMongoDatabase _database;
 
-        protected IMongoCollection<TransportMessageMongoDb> _collectionQueue { get; private set; }
-
         /// <summary>
-        /// Name of the collection this transport is using for storage
+        /// This is the collection that points to _receiveCollectionNAme and it is the 
+        /// collection that will receive messages.
         /// </summary>
-        protected readonly string ReceiveTableName;
+        private IMongoCollection<TransportMessageMongoDb> _collectionQueue;
 
         /// <summary>
         /// Constructs the transport with the given <see cref="IMongoDatabase"/>
         /// </summary>
         public MongoDbTransport(
-            string inputQueueName,
             IRebusLoggerFactory rebusLoggerFactory,
             IAsyncTaskFactory asyncTaskFactory,
             IRebusTime rebusTime,
@@ -102,21 +86,33 @@ namespace Rebus.MongoDb.Transport
                 throw new ArgumentNullException(nameof(rebusLoggerFactory));
             }
 
-            if (asyncTaskFactory == null)
-            {
-                throw new ArgumentNullException(nameof(asyncTaskFactory));
-            }
-
-            var client = new MongoClient(mongoDbTransportOptions.ConnectionString);
-            _database = client.GetDatabase(mongoDbTransportOptions.ConnectionString.DatabaseName);
-
-            _rebusTime = rebusTime ?? throw new ArgumentNullException(nameof(rebusTime));
-            _mongoDbTransportOptions = mongoDbTransportOptions;
-            ReceiveTableName = inputQueueName ?? throw new ArgumentNullException(nameof(rebusTime));
-
             _log = rebusLoggerFactory.GetLogger<MongoDbTransport>();
 
-            ExpiredMessagesCleanupInterval = DefaultExpiredMessagesCleanupInterval;
+            try
+            {
+                if (asyncTaskFactory == null)
+                {
+                    throw new ArgumentNullException(nameof(asyncTaskFactory));
+                }
+
+                var client = new MongoClient(mongoDbTransportOptions.ConnectionString);
+                _database = client.GetDatabase(mongoDbTransportOptions.ConnectionString.DatabaseName);
+
+                _rebusTime = rebusTime ?? throw new ArgumentNullException(nameof(rebusTime));
+                _mongoDbTransportOptions = mongoDbTransportOptions;
+
+                if (!mongoDbTransportOptions.IsOneWayQueue)
+                {
+                    Address = mongoDbTransportOptions.InputQueueName ?? throw new ArgumentNullException(nameof(rebusTime));
+                }
+
+                ExpiredMessagesCleanupInterval = DefaultExpiredMessagesCleanupInterval;
+            }
+            catch (Exception ex)
+            {
+                _log.Error(ex, "Exception during creation of Mongodbtransport");
+                throw;
+            }
         }
 
         /// <summary>
@@ -124,9 +120,10 @@ namespace Rebus.MongoDb.Transport
         /// </summary>
         public void Initialize()
         {
-            if (ReceiveTableName == null)
+            //Initialize the collection
+            if (!_mongoDbTransportOptions.IsOneWayQueue)
             {
-                return;
+                _collectionQueue = _database.GetCollection<TransportMessageMongoDb>(Address);
             }
         }
 
@@ -136,9 +133,9 @@ namespace Rebus.MongoDb.Transport
         public TimeSpan ExpiredMessagesCleanupInterval { get; set; }
 
         /// <summary>
-        /// Gets the name that this SQL transport will use to query by when checking the messages table
+        /// Gets the name that this Mongodb transport will use to query by when checking the messages table
         /// </summary>
-        public string Address => ReceiveTableName; // ReceiveTableName?.QualifiedName;
+        public string Address { get; private set; }
 
         /// <summary>
         /// Creates the collection named after the given <paramref name="address"/>
@@ -150,45 +147,21 @@ namespace Rebus.MongoDb.Transport
                 return;
             }
 
-            AsyncHelpers.RunSync(() => EnsureTableIsCreatedAsync(ReceiveTableName));
-        }
-
-        /// <summary>
-        /// Checks if the table with the configured name exists - if not, it will be created
-        /// </summary>
-        public void EnsureTableIsCreated()
-        {
-            try
-            {
-                AsyncHelpers.RunSync(() => EnsureTableIsCreatedAsync(ReceiveTableName));
-            }
-            catch
-            {
-                // if it failed because of a collision between another thread doing the same thing, just try again once:
-                AsyncHelpers.RunSync(() => EnsureTableIsCreatedAsync(ReceiveTableName));
-            }
+            AsyncHelpers.RunSync(() => EnsureTableIsCreatedAsync(address));
         }
 
         private async Task EnsureTableIsCreatedAsync(string queueName)
         {
-            try
-            {
-                await InnerEnsureTableIsCreatedAsync(queueName).ConfigureAwait(false);
-            }
-            catch (Exception)
-            {
-                // if it fails the first time, and if it's because of some kind of conflict,
-                // we should run it again and see if the situation has stabilized
-                await InnerEnsureTableIsCreatedAsync(queueName).ConfigureAwait(false);
-            }
+            await InnerEnsureTableIsCreatedAsync(queueName).ConfigureAwait(false);
         }
 
         private async Task InnerEnsureTableIsCreatedAsync(string queueName)
         {
             // index creation
-            _collectionQueue = _database.GetCollection<TransportMessageMongoDb>(queueName);
+            var coll = _database.GetCollection<TransportMessageMongoDb>(queueName);
+
             // Receice index: priority, visible, expiration, id
-            await _collectionQueue.Indexes.CreateOneAsync(
+            await coll.Indexes.CreateOneAsync(
                 new CreateIndexModel<TransportMessageMongoDb>(
                 Builders<TransportMessageMongoDb>.IndexKeys
                     .Ascending(o => o.Priority)
@@ -202,8 +175,9 @@ namespace Rebus.MongoDb.Transport
                     Unique = true,
                 })
                 ).ConfigureAwait(true);
+
             // Expiration index: expiration
-            await _collectionQueue.Indexes.CreateOneAsync(
+            await coll.Indexes.CreateOneAsync(
                 new CreateIndexModel<TransportMessageMongoDb>(
                 Builders<TransportMessageMongoDb>.IndexKeys
                     .Ascending(o => o.Expiration),
@@ -215,43 +189,59 @@ namespace Rebus.MongoDb.Transport
                     ExpireAfter = TimeSpan.Zero,
                 })
                 ).ConfigureAwait(true);
-            AdditionalSchemaModifications(queueName);
         }
 
-        /// <summary>
-        /// Provides an opportunity for derived implementations to also update the schema
-        /// </summary>
-        /// <param name="queueName">Name of the table to create schema modifications for</param>
-        protected virtual void AdditionalSchemaModifications(string queueName)
-        {
-            // intentionally left blank
-        }
+        private Int32 _concurrentSend = 0;
 
         /// <summary>
         /// Sends the given transport message to the specified destination queue address by adding it to the queue's table.
         /// </summary>
-        public virtual async Task Send(string destinationAddress, TransportMessage message, ITransactionContext context)
+        public virtual async Task Send(
+            string destinationAddress,
+            TransportMessage message,
+            ITransactionContext context)
         {
             var destinationAddressToUse = GetDestinationAddressToUse(destinationAddress, message);
 
             try
             {
-                await InnerSend(destinationAddressToUse, message).ConfigureAwait(false);
+                if (_concurrentSend > 5)
+                {
+                    SpinWait.SpinUntil(() => _concurrentSend < 10);
+                }
+                Interlocked.Increment(ref _concurrentSend);
+                var insertedRecord = await InnerSend(destinationAddressToUse, message).ConfigureAwait(false);
+                if (context != null)
+                {
+                    context.OnAborted(c => _collectionQueue.DeleteOne(Builders<TransportMessageMongoDb>.Filter.Eq("_id", insertedRecord.Id)));
+                }
             }
             catch (Exception e)
             {
                 throw new RebusApplicationException(e, $"Unable to send to destination {destinationAddress}");
+            }
+            finally
+            {
+                Interlocked.Decrement(ref _concurrentSend);
             }
         }
 
         /// <summary>
         /// Receives the next message by querying the input queue table for a message with a recipient matching this transport's <see cref="Address"/>
         /// </summary>
-        public async Task<TransportMessage> Receive(ITransactionContext context, CancellationToken cancellationToken)
+        public async Task<TransportMessage> Receive(
+            ITransactionContext context,
+            CancellationToken cancellationToken)
         {
             using (await _bottleneck.Enter(cancellationToken).ConfigureAwait(false))
             {
-                return await ReceiveInternal(context, cancellationToken).ConfigureAwait(false);
+                var message = await ReceiveInternal(context, cancellationToken).ConfigureAwait(false);
+                if (message != null && context != null)
+                {
+                    context.OnAborted(c => _collectionQueue.InsertOne(message));
+                }
+
+                return ExtractTransportMessageFromReader(message);
             }
         }
 
@@ -262,9 +252,14 @@ namespace Rebus.MongoDb.Transport
         /// <param name="context">Tranasction context the receive is operating on</param>
         /// <param name="cancellationToken">Token to abort processing</param>
         /// <returns>A <seealso cref="TransportMessage"/> or <c>null</c> if no message can be dequeued</returns>
-        protected virtual async Task<TransportMessage> ReceiveInternal(ITransactionContext context, CancellationToken cancellationToken)
+        protected virtual async Task<TransportMessageMongoDb> ReceiveInternal(ITransactionContext context, CancellationToken cancellationToken)
         {
-            TransportMessage receivedTransportMessage;
+            if (_mongoDbTransportOptions.IsOneWayQueue)
+            {
+                return null;
+            }
+
+            TransportMessageMongoDb receivedTransportMessage;
 
             var filter =
                 Builders<TransportMessageMongoDb>.Filter.And(
@@ -277,14 +272,13 @@ namespace Rebus.MongoDb.Transport
                 .Ascending(t => t.Id);
             try
             {
-
                 var record = await _collectionQueue.FindOneAndDeleteAsync(
                     filter,
                     new FindOneAndDeleteOptions<TransportMessageMongoDb, TransportMessageMongoDb>()
                     {
                         Sort = sort
                     }).ConfigureAwait(false);
-                receivedTransportMessage = ExtractTransportMessageFromReader(record);
+                receivedTransportMessage = record;
             }
             catch (Exception exception) when (cancellationToken.IsCancellationRequested)
             {
@@ -337,7 +331,7 @@ namespace Rebus.MongoDb.Transport
         /// </summary>
         /// <param name="destinationAddress">Address the message will be sent to</param>
         /// <param name="message">Message to be sent</param>
-        protected Task InnerSend(string destinationAddress, TransportMessage message)
+        protected async Task<TransportMessageMongoDb> InnerSend(string destinationAddress, TransportMessage message)
         {
             var destinationQueue = _database.GetCollection<TransportMessageMongoDb>(destinationAddress);
 
@@ -355,21 +349,8 @@ namespace Rebus.MongoDb.Transport
             record.Visibile = DateTime.UtcNow.Add(visible);
             record.Expiration = DateTime.UtcNow.Add(ttl);
 
-            return destinationQueue.InsertOneAsync(record);
-            //var update = Builders<TransportMessageMongoDb>.Update
-            //    .Set(t => t.Headers, headers)
-            //    .Set(t => t.Body, message.Body)
-            //    .Set(t => t.Priority, priority)
-            //    .CurrentDate(t => t.Visibile, UpdateDefinitionCurrentDateType.Date)
-            //    .Inc(t => t.Visibile, visible.TotalMilliseconds)
-            //    .CurrentDate(t => t.Expiration, UpdateDefinitionCurrentDateType.Date)
-            //    .Inc(t => t.Expiration, ttl.TotalMilliseconds)
-            //    ;
-
-            //await destinationQueue.UpdateOneAsync(null, update, new UpdateOptions
-            //{
-            //    IsUpsert = true
-            //}).ConfigureAwait(false);
+            await destinationQueue.InsertOneAsync(record).ConfigureAwait(false);
+            return record;
         }
 
         private TimeSpan GetInitialVisibilityDelay(IDictionary<string, string> headers)
@@ -415,17 +396,6 @@ namespace Rebus.MongoDb.Transport
             catch (Exception exception)
             {
                 throw new FormatException($"Could not parse '{valueOrNull}' into an Int32!", exception);
-            }
-        }
-
-        /// <summary>
-        /// Shuts down the background timer
-        /// </summary>
-        public void Dispose()
-        {
-            if (_disposed)
-            {
-                return;
             }
         }
     }

@@ -1,31 +1,31 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using Rebus.Config;
 using Rebus.Logging;
 using Rebus.Messages;
-using Rebus.SqlServer.Transport;
+using Rebus.MongoDb.Tests;
+using Rebus.MongoDb.Transport;
 using Rebus.Tests.Contracts;
 using Rebus.Threading.TaskParallelLibrary;
 using Rebus.Time;
 using Rebus.Transport;
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace Rebus.SqlServer.Tests.Transport
+namespace Rebus.MongoDb.Tests.Transport
 {
-    [TestFixture]
-    public class TestSqlServerTransportMessageOrdering : FixtureBase
+    [TestFixture, Category(MongoTestHelper.TestCategory)]
+    public class TestMongoDbTransportMessageOrdering : FixtureBase
     {
-        const string QueueName = "test-ordering";
-        protected override void SetUp() => SqlTestHelper.DropAllTables();
+        private const string QueueName = "test-ordering";
+        protected override void SetUp() => MongoTestHelper.DropMongoDatabase();
 
-        [TestCase(TransportType.LockedRows)]
-        [TestCase(TransportType.LeaseBased)]
-        public async Task DeliversMessagesByVisibleTimeAndNotBeInsertionTime(TransportType transportType)
+        [TestCase]
+        public async Task DeliversMessagesByVisibleTimeAndNotBeInsertionTime()
         {
-            var transport = GetTransport(transportType);
+            var transport = GetTransport();
 
             var now = DateTime.Now;
 
@@ -43,13 +43,16 @@ namespace Rebus.SqlServer.Tests.Transport
             Assert.That(thirdMessage, Is.EqualTo("first message"));
         }
 
-        static async Task<string> ReceiveMessageBody(ITransport transport)
+        private static async Task<string> ReceiveMessageBody(ITransport transport)
         {
             using (var scope = new RebusTransactionScope())
             {
                 var transportMessage = await transport.Receive(scope.TransactionContext, CancellationToken.None);
 
-                if (transportMessage == null) return null;
+                if (transportMessage == null)
+                {
+                    return null;
+                }
 
                 var body = Encoding.UTF8.GetString(transportMessage.Body);
 
@@ -65,7 +68,7 @@ namespace Rebus.SqlServer.Tests.Transport
             LeaseBased,
         }
 
-        static TransportMessage GetTransportMessage(string body, DateTime? deferredUntilTime = null)
+        private static TransportMessage GetTransportMessage(string body, DateTime? deferredUntilTime = null)
         {
             var headers = new Dictionary<string, string>
             {
@@ -81,7 +84,7 @@ namespace Rebus.SqlServer.Tests.Transport
             return new TransportMessage(headers, Encoding.UTF8.GetBytes(body));
         }
 
-        static async Task PutInQueue(ITransport transport, TransportMessage transportMessage)
+        private static async Task PutInQueue(ITransport transport, TransportMessage transportMessage)
         {
             using (var scope = new RebusTransactionScope())
             {
@@ -90,35 +93,21 @@ namespace Rebus.SqlServer.Tests.Transport
             }
         }
 
-        static SqlServerTransport GetTransport(TransportType transportType)
+        private static MongoDbTransport GetTransport()
         {
             var rebusTime = new DefaultRebusTime();
             var loggerFactory = new ConsoleLoggerFactory(false);
-            var connectionProvider = new DbConnectionProvider(SqlTestHelper.ConnectionString, loggerFactory);
-            var asyncTaskFactory = new TplAsyncTaskFactory(loggerFactory);
 
-            var transport = transportType == TransportType.LeaseBased
-                ? new SqlServerLeaseTransport(
-                    connectionProvider,
-                    QueueName,
+            var asyncTaskFactory = new TplAsyncTaskFactory(loggerFactory);
+            var config = new MongoDbTransportOptions(MongoTestHelper.GetUrl()).SetInputQueueName(QueueName);
+
+            var transport = new MongoDbTransport(
                     loggerFactory,
                     asyncTaskFactory,
                     rebusTime,
-                    TimeSpan.FromMinutes(1),
-                    TimeSpan.FromSeconds(5),
-                    () => "who cares",
-                    new SqlServerLeaseTransportOptions(connectionProvider)
-                )
-                : new SqlServerTransport(
-                    connectionProvider,
-                    QueueName,
-                    loggerFactory,
-                    asyncTaskFactory,
-                    rebusTime,
-                    new SqlServerTransportOptions(connectionProvider)
+                    config
                 );
 
-            transport.EnsureTableIsCreated();
             transport.Initialize();
 
             return transport;
