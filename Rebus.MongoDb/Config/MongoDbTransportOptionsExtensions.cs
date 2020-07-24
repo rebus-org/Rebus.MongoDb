@@ -24,5 +24,23 @@ namespace Rebus.Config
             options.InputQueueName = inputQueueName;
             return options;
         }
+
+        /// <summary>
+        /// Opts the client out of any collection creation
+        /// </summary>
+        public static TTransportOptions OptOutOfCollectionCreation<TTransportOptions>(this TTransportOptions options) where TTransportOptions : MongoDbTransportOptions
+        {
+            options.EnsureCollectionsAreCreated = false;
+            return options;
+        }
+
+        /// <summary>
+        /// Sets if collection creation is allowed
+        /// </summary>
+        public static TTransportOptions SetEnsureCollectionsAreCreated<TTransportOptions>(this TTransportOptions options, bool ensureTablesAreCreated) where TTransportOptions : MongoDbTransportOptions
+        {
+            options.EnsureCollectionsAreCreated = ensureTablesAreCreated;
+            return options;
+        }
     }
 }

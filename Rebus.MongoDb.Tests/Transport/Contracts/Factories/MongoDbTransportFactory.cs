@@ -43,9 +43,11 @@ namespace Rebus.MongoDb.Tests.Transport.Contract.Factories
             var rebusTime = new DefaultRebusTime();
             var consoleLoggerFactory = new ConsoleLoggerFactory(false);
             var asyncTaskFactory = new TplAsyncTaskFactory(consoleLoggerFactory);
+            
             var transport = new MongoDbTransport(consoleLoggerFactory, asyncTaskFactory, rebusTime,
                 new Config.MongoDbTransportOptions(MongoTestHelper.GetUrl()).SetInputQueueName(inputQueueAddress));
 
+            transport.EnsureCollectionIsCreated();
             transport.Initialize();
 
             return transport;

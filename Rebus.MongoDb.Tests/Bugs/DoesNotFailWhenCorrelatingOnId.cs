@@ -40,7 +40,7 @@ namespace Rebus.MongoDb.Tests.Bugs
 
             var data = await collection.Find(d => true).ToListAsync();
 
-            Assert.That(data.Count, Is.EqualTo(2), 
+            Assert.That(data.Count, Is.EqualTo(2),
                 "The second insert would fail, because there would be an index with a unique constraint on 'Id', but since the Id properti is mapped to '_id', values in that index would be null");
         }
 
@@ -56,9 +56,9 @@ namespace Rebus.MongoDb.Tests.Bugs
                 config.Correlate<string>(str => str, d => d.Id);
             }
 
-            public async Task Handle(string message)
+            public Task Handle(string message)
             {
-                
+                return Task.CompletedTask;
             }
         }
     }
