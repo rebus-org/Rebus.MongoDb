@@ -3,8 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Rebus.MongoDb.Tests.Helpers
 {
@@ -18,7 +16,7 @@ namespace Rebus.MongoDb.Tests.Helpers
                 GetClassMap().Remove(classType);
             }
 
-            static Dictionary<Type, BsonClassMap> GetClassMap()
+            private static Dictionary<Type, BsonClassMap> GetClassMap()
             {
                 var cm = BsonClassMap.GetRegisteredClassMaps().First();
                 var fi = typeof(BsonClassMap).GetField("__classMaps", BindingFlags.Static | BindingFlags.NonPublic);
