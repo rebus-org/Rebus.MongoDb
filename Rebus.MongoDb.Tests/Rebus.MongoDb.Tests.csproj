@@ -31,7 +31,7 @@
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.1' ">
     <DefineConstants>NETCOREAPP21</DefineConstants>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net45|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net461|AnyCPU'">
     <WarningsAsErrors />
   </PropertyGroup>
   <ItemGroup>

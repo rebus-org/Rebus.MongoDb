@@ -2,7 +2,6 @@
 using Rebus.Config;
 using Rebus.Logging;
 using Rebus.Messages;
-using Rebus.MongoDb.Tests;
 using Rebus.MongoDb.Transport;
 using Rebus.Tests.Contracts;
 using Rebus.Threading.TaskParallelLibrary;
@@ -108,6 +107,7 @@ namespace Rebus.MongoDb.Tests.Transport
                     config
                 );
 
+            transport.EnsureCollectionIsCreated();
             transport.Initialize();
 
             return transport;

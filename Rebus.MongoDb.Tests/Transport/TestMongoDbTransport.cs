@@ -41,6 +41,7 @@ namespace Rebus.MongoDb.Tests.Transport
                 asyncTaskFactory,
                 rebusTime,
                 mongoDbTransportOptions);
+            _transport.EnsureCollectionIsCreated();
 
             _transport.Initialize();
 

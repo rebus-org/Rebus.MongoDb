@@ -47,6 +47,11 @@ namespace Rebus.Config
         public string InputQueueName { get; internal set; }
 
         /// <summary>
+        /// If <c>false</c> collections will not be created and must be created outside of Rebus
+        /// </summary>
+        public bool EnsureCollectionsAreCreated { get; internal set; } = true;
+
+        /// <summary>
         /// If <c>true</c> the transport is configured in one way mode
         /// </summary>
         public bool IsOneWayQueue => InputQueueName == null;

@@ -78,8 +78,13 @@ namespace Rebus.Config
                     {
                         OneWayClientBackdoor.ConfigureOneWayClient(configurer);
                     }
+                    var transport = transportFactory(context);
+                    if ((transportOptions.InputQueueName != null) && transportOptions.EnsureCollectionsAreCreated)
+                    {
+                        transport.EnsureCollectionIsCreated();
+                    }
 
-                    return transportFactory(context);
+                    return transport;
                 }
             );
 

@@ -125,7 +125,6 @@ namespace Rebus.MongoDb.Transport
             if (!_mongoDbTransportOptions.IsOneWayQueue)
             {
                 _collectionQueue = _database.GetCollection<TransportMessageMongoDb>(Address);
-                CreateQueue(Address);
             }
         }
 
@@ -149,12 +148,15 @@ namespace Rebus.MongoDb.Transport
                 return;
             }
 
-            AsyncHelpers.RunSync(() => EnsureTableIsCreatedAsync(address));
+            AsyncHelpers.RunSync(() => InnerEnsureTableIsCreatedAsync(address));
         }
 
-        private async Task EnsureTableIsCreatedAsync(string queueName)
+        /// <summary>
+        /// Checks if the collection with the configured name exists - if not, it will be created
+        /// </summary>
+        public void EnsureCollectionIsCreated()
         {
-            await InnerEnsureTableIsCreatedAsync(queueName).ConfigureAwait(false);
+            AsyncHelpers.RunSync(() => InnerEnsureTableIsCreatedAsync(_mongoDbTransportOptions.InputQueueName));
         }
 
         private async Task InnerEnsureTableIsCreatedAsync(string queueName)
