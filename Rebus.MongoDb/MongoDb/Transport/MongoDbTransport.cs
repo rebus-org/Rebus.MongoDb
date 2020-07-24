@@ -125,6 +125,7 @@ namespace Rebus.MongoDb.Transport
             if (!_mongoDbTransportOptions.IsOneWayQueue)
             {
                 _collectionQueue = _database.GetCollection<TransportMessageMongoDb>(Address);
+                CreateQueue(Address);
             }
         }
 
