@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using MongoDB.Bson.Serialization;
+﻿using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Bson.Serialization.Options;
 using NUnit.Framework;
@@ -14,6 +10,10 @@ using Rebus.Sagas;
 using Rebus.Tests.Contracts;
 using Rebus.Tests.Contracts.Utilities;
 using Rebus.Transport.InMem;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 #pragma warning disable 1998
 
@@ -22,6 +22,13 @@ namespace Rebus.MongoDb.Tests.Bugs
     [TestFixture]
     public class VerifyPossibleBsonCustomization : FixtureBase
     {
+        [OneTimeTearDown]
+        public void OneTimeTearDown()
+        {
+            //Remember to unregister the wrong sagadata registration.
+            MongoDbTestHelper.BsonClassMapHelper.Unregister<SagaData>();
+        }
+
         [Test]
         public async Task VerifyNiceExceptionWhenSerializerHasBeenImproperlyCustomized()
         {
@@ -33,7 +40,6 @@ namespace Rebus.MongoDb.Tests.Bugs
             {
                 c.MapField(d => d.Id);
             });
-
 
             var activator = Using(new BuiltinHandlerActivator());
             var listLoggerFactory = new ListLoggerFactory();
@@ -65,15 +71,15 @@ Found this:
             Assert.That(message, Contains.Substring("Id"));
         }
 
-        class DictionaryRepresentationConvention : ConventionBase, IMemberMapConvention
+        private class DictionaryRepresentationConvention : ConventionBase, IMemberMapConvention
         {
-            readonly DictionaryRepresentation _dictionaryRepresentation;
+            private readonly DictionaryRepresentation _dictionaryRepresentation;
 
             public DictionaryRepresentationConvention(DictionaryRepresentation dictionaryRepresentation) => _dictionaryRepresentation = dictionaryRepresentation;
 
             public void Apply(BsonMemberMap memberMap) => memberMap.SetSerializer(ConfigureSerializer(memberMap.GetSerializer()));
 
-            IBsonSerializer ConfigureSerializer(IBsonSerializer serializer)
+            private IBsonSerializer ConfigureSerializer(IBsonSerializer serializer)
             {
                 if (serializer is IDictionaryRepresentationConfigurable dictionaryRepresentationConfigurable)
                 {
@@ -87,7 +93,7 @@ Found this:
             }
         }
 
-        class SomeSaga : Saga<SomeSagaData>, IAmInitiatedBy<string>
+        private class SomeSaga : Saga<SomeSagaData>, IAmInitiatedBy<string>
         {
             protected override void CorrelateMessages(ICorrelationConfig<SomeSagaData> config)
             {
@@ -97,13 +103,13 @@ Found this:
             public async Task Handle(string message) => throw new System.NotImplementedException("should not get this far");
         }
 
-        class SomeSagaData : SagaData
+        private class SomeSagaData : SagaData
         {
             public string Text { get; set; }
 
             public Dictionary<string, SomeItem> Items { get; set; }
         }
 
-        class SomeItem { }
+        private class SomeItem { }
     }
 }
