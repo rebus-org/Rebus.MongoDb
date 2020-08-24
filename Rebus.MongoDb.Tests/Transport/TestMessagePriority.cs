@@ -2,7 +2,6 @@
 using Rebus.Activation;
 using Rebus.Bus;
 using Rebus.Config;
-using Rebus.MongoDb.Tests;
 using Rebus.MongoDb.Transport;
 using Rebus.Routing.TypeBased;
 using Rebus.Tests.Contracts;
@@ -12,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 #pragma warning disable 1998
 
 namespace Rebus.MongoDb.Tests.Transport
@@ -22,9 +22,9 @@ namespace Rebus.MongoDb.Tests.Transport
         protected override void SetUp() => MongoTestHelper.DropMongoDatabase();
 
         [Test]
-        public async Task ReceivedMessagesByPriority_HigherIsMoreImportant_Normal() => await RunTest("normal", 20);
+        public async Task ReceivedMessagesByPriority_HigherIsMoreImportant_Normal() => await RunTest(20);
 
-        private async Task RunTest(string type, int messageCount)
+        private async Task RunTest(int messageCount)
         {
             var counter = new SharedCounter(messageCount);
             var receivedMessagePriorities = new List<int>();
@@ -67,7 +67,7 @@ namespace Rebus.MongoDb.Tests.Transport
 
             counter.WaitForResetEvent();
 
-            await Task.Delay(TimeSpan.FromSeconds(1));
+            await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
 
             Assert.That(receivedMessagePriorities.Count, Is.EqualTo(messageCount));
             Assert.That(receivedMessagePriorities.ToArray(), Is.EqualTo(Enumerable.Range(0, messageCount).Reverse().ToArray()));
