@@ -15,7 +15,7 @@ namespace Rebus.MongoDb.Tests
 
             var databaseName = $"rebus2_test_{suffix}".TrimEnd('_');
 
-            var mongoUrl = new MongoUrl($"mongodb://admin:12345@localhost/{databaseName}?authSource=admin");
+            var mongoUrl = new MongoUrl($"mongodb://admin:123456##@localhost/{databaseName}?authSource=admin");
 
             Console.WriteLine("Using MongoDB {0}", mongoUrl);
 
@@ -57,17 +57,14 @@ namespace Rebus.MongoDb.Tests
                 GuidRepresentation = GuidRepresentation.Standard,
                 WriteConcern = WriteConcern.Acknowledged
             };
-            var mongoDatabase = mongoClient.GetDatabase(url.DatabaseName, settings);
-            return mongoDatabase;
+            return mongoClient.GetDatabase(url.DatabaseName, settings);
         }
 
         static IMongoClient GetMongoClient()
         {
             var url = GetUrl();
 
-            var mongoClient = new MongoClient(url);
-
-            return mongoClient;
+            return new MongoClient(url);
         }
     }
 }
