@@ -7,6 +7,8 @@ Provides MongoDB persistence implementations for [Rebus](https://github.com/rebu
 * sagas
 * subscriptions
 * timeouts
+ 
+Provides transport MongoDb implementations for [Rebus](https://github.com/rebus-org/Rebus) 
 
 # Unit Tests
 
