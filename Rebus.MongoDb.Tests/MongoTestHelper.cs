@@ -11,11 +11,13 @@ namespace Rebus.MongoDb.Tests
 
         public static MongoUrl GetUrl()
         {
-            var suffix = TestConfig.Suffix;
+            var suffix = TestConfig.Suffix + "_" + TargetFramework;
 
             var databaseName = $"rebus2_test_{suffix}".TrimEnd('_');
 
-            var mongoUrl = new MongoUrl($"mongodb://admin:123456##@localhost/{databaseName}?authSource=admin");
+            var builder = new MongoUrlBuilder(Environment.GetEnvironmentVariable("REBUS_MONGODB"));
+            builder.DatabaseName = databaseName;
+            var mongoUrl = builder.ToMongoUrl();
 
             Console.WriteLine("Using MongoDB {0}", mongoUrl);
 
