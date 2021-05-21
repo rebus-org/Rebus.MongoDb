@@ -4,6 +4,7 @@ using Rebus.Bus;
 using Rebus.Config;
 using Rebus.MongoDb.Transport;
 using Rebus.Routing.TypeBased;
+using Rebus.Serialization.Json;
 using Rebus.Tests.Contracts;
 using Rebus.Tests.Contracts.Extensions;
 using Rebus.Tests.Contracts.Utilities;
