@@ -12,10 +12,11 @@
     <PackageDescription>MongoDB-based persistence for Rebus</PackageDescription>
     <Copyright>Copyright 2012</Copyright>
     <PackageTags>rebus mongodb no-sql nosql documents</PackageTags>
-    <PackageIconUrl>https://github.com/mookid8000/Rebus/raw/master/artwork/little_rebusbus2_copy-200x200.png</PackageIconUrl>
+    <PackageIconUrl></PackageIconUrl>
     <RepositoryUrl>https://github.com/rebus-org/Rebus</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageIcon>little_rebusbus2_copy-500x500.png</PackageIcon>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -41,5 +42,11 @@
     <PackageReference Include="mongodb.driver" Version="2.13.1" />
     <PackageReference Include="MongoDB.Driver.GridFS" Version="2.13.1" />
     <PackageReference Include="rebus" Version="6.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\artwork\little_rebusbus2_copy-500x500.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
   </ItemGroup>
 </Project>
