@@ -63,7 +63,7 @@ namespace Rebus.MongoDb.Tests.Bugs
 
             var collection = _database.GetCollection<SomeSagaData>(nameof(SomeSagaData));
 
-            await collection.WaitFor(c => c.Count(d => true) >= 1);
+            await collection.WaitFor(c => c.CountDocuments(d => true) >= 1);
             await Task.Delay(TimeSpan.FromSeconds(1));
             
             var docs = collection.Find(x => true).ToList();

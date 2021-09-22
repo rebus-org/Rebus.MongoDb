@@ -167,7 +167,13 @@ namespace Rebus.MongoDb.Sagas
 
                         var index = new BsonDocument { { correlationProperty.PropertyName, 1 } };
                         var indexDef = new BsonDocumentIndexKeysDefinition<BsonDocument>(index);
-                        await mongoCollection.Indexes.CreateOneAsync(indexDef, new CreateIndexOptions { Unique = true });
+                        
+                        var model = new CreateIndexModel<BsonDocument>(indexDef)
+                        {
+                            Options = {Unique = true}
+                        };
+
+                        await mongoCollection.Indexes.CreateOneAsync(model);
                     }
 
                     try
