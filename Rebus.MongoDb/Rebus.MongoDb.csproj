@@ -38,8 +38,8 @@
     <DocumentationFile>bin\Release\Rebus.MongoDb.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="mongodb.driver" Version="2.4.4" />
-    <PackageReference Include="MongoDB.Driver.GridFS" Version="2.4.4" />
+    <PackageReference Include="mongodb.driver" Version="2.13.1" />
+    <PackageReference Include="MongoDB.Driver.GridFS" Version="2.13.1" />
     <PackageReference Include="rebus" Version="6.0.0" />
   </ItemGroup>
 </Project>

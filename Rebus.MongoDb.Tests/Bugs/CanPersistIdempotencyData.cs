@@ -18,8 +18,9 @@ namespace Rebus.MongoDb.Tests.Bugs
     [TestFixture]
     public class CanPersistIdempotencyData : FixtureBase
     {
-        MongoDbSagaStorage _sagaStorage;
         static readonly IEnumerable<ISagaCorrelationProperty> None = Enumerable.Empty<ISagaCorrelationProperty>();
+        
+        MongoDbSagaStorage _sagaStorage;
 
         protected override void SetUp()
         {

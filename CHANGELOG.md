@@ -39,4 +39,8 @@
 ## 6.0.5
 * Make automatic index creation on saga properties optional
 
+## 7.0.0-b1
+* Only target .NET Standard 2.0
+* Update MongoDB driver to 2.13.1 (fix bug that would cause Rebus.MongoDb to malfunction on .NET 5)
+
 [cgehrmann]: https://github.com/cgehrmann

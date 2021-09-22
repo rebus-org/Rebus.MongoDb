@@ -24,11 +24,12 @@ namespace Rebus.MongoDb.Sagas
     /// </summary>
     public class MongoDbSagaStorage : ISagaStorage, IInitializable
     {
+        static readonly object ClassMapRegistrationLock = new object();
+
         /// <summary>
         /// Static lock object here to guard registration across all bus instances
         /// </summary>
         readonly ConcurrentDictionary<Type, Lazy<Task>> _collectionInitializers = new ConcurrentDictionary<Type, Lazy<Task>>();
-        static readonly object ClassMapRegistrationLock = new object();
         readonly Func<Type, string> _collectionNameResolver;
         readonly bool _automaticallyCreateIndexes;
         readonly IMongoDatabase _mongoDatabase;
@@ -257,13 +258,15 @@ in BSON documents.");
         {
             lock (ClassMapRegistrationLock)
             {
-                if (BsonClassMap.IsClassMapRegistered(typeof(IdempotencyData)))
+                var type = typeof(IdempotencyData);
+
+                if (BsonClassMap.IsClassMapRegistered(type))
                 {
-                    _log.Debug("BSON class map for {type} already registered - not doing anything", typeof(IdempotencyData));
+                    _log.Debug("BSON class map for {type} already registered - not doing anything", type);
                     return;
                 }
 
-                _log.Debug("Registering BSON class maps for {type} and accompanying types", typeof(IdempotencyData));
+                _log.Debug("Registering BSON class maps for {type} and accompanying types", type);
 
                 BsonClassMap.RegisterClassMap<IdempotencyData>(map =>
                 {
