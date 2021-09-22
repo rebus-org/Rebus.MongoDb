@@ -5,7 +5,6 @@
     <RootNamespace>Rebus</RootNamespace>
     <AssemblyName>Rebus.MongoDb</AssemblyName>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <Authors>mookid8000</Authors>
     <PackageLicenseUrl></PackageLicenseUrl>
     <PackageProjectUrl>https://rebus.fm/what-is-rebus/</PackageProjectUrl>
