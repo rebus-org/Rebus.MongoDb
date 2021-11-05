@@ -44,8 +44,8 @@
     <None Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="mongodb.driver" Version="2.13.2" />
-    <PackageReference Include="MongoDB.Driver.GridFS" Version="2.13.2" />
+    <PackageReference Include="mongodb.driver" Version="2.12.4" />
+    <PackageReference Include="MongoDB.Driver.GridFS" Version="2.12.4" />
     <PackageReference Include="rebus" Version="6.6.1" />
   </ItemGroup>
   <ItemGroup>
