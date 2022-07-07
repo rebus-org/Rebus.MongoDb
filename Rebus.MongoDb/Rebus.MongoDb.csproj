@@ -41,7 +41,6 @@
   <ItemGroup>
     <Compile Remove="Properties\AssemblyInfo.cs" />
     <None Include="icon.png" Pack="true" PackagePath="" />
-    <None Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="mongodb.driver" Version="2.15.1" />
@@ -56,6 +55,6 @@
   </ItemGroup>
 
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="$(ProjectDir)..\scripts\patch_assemblyinfo.cmd $(ProjectDir)" />
+   
   </Target>
 </Project>

@@ -11,7 +11,7 @@ namespace Rebus.MongoDb.Tests
 
         public static MongoUrl GetUrl()
         {
-            var suffix = TestConfig.Suffix + "_" + TargetFramework;
+            var suffix = TestConfig.Suffix;
 
             var databaseName = $"rebus2_test_{suffix}".TrimEnd('_');
 
@@ -22,18 +22,6 @@ namespace Rebus.MongoDb.Tests
             Console.WriteLine("Using MongoDB {0}", mongoUrl);
 
             return mongoUrl;
-        }
-
-        public static string TargetFramework
-        {
-            get
-            {
-                #if NET461
-                return "net461";
-                #elif NETCOREAPP21
-                return "netcoreapp21";
-                #endif
-            }
         }
 
         internal static void DropCollection(string collectionName)
