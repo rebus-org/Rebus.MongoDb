@@ -15,8 +15,8 @@ namespace Rebus.MongoDb.Tests
 
             var databaseName = $"rebus2_test_{suffix}".TrimEnd('_');
 
-            var builder = new MongoUrlBuilder(Environment.GetEnvironmentVariable("REBUS_MONGODB"));
-            builder.DatabaseName = databaseName;
+            var serverUrl = Environment.GetEnvironmentVariable("REBUS_MONGODB") ?? "mongodb://localhost";
+            var builder = new MongoUrlBuilder(serverUrl) { DatabaseName = databaseName };
             var mongoUrl = builder.ToMongoUrl();
 
             Console.WriteLine("Using MongoDB {0}", mongoUrl);
