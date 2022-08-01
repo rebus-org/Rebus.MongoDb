@@ -1,4 +1,4 @@
-image: Visual Studio 2019
+image: Visual Studio 2022
 
 services:
   - mongodb
@@ -13,5 +13,7 @@ before_build:
   - appveyor-retry dotnet restore -v Minimal
 
 build_script:
-  - dotnet build Rebus.MongoDb -c Release 
-  - dotnet build Rebus.MongoDb.Tests -c Release 
+  - dotnet build Rebus.MongoDb -c Release --no-restore
+
+test_script:
+  - dotnet test Rebus.MongoDb.Tests --no-restore
