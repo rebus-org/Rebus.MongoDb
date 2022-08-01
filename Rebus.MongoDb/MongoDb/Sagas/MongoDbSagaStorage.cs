@@ -66,10 +66,6 @@ namespace Rebus.MongoDb.Sagas
                 ? new BsonDocument { { "_id", BsonValue.Create(propertyValue) } }
                 : new BsonDocument { { propertyName, BsonValue.Create(propertyValue) } };
 
-            //var criteria = propertyName == nameof(ISagaData.Id)
-            //    ? Builders<BsonDocument>.Filter.Eq("_id", propertyValue)
-            //    : Builders<BsonDocument>.Filter.Eq(propertyName, propertyValue);
-
             var result = await collection.Find(criteria).FirstOrDefaultAsync().ConfigureAwait(false);
 
             if (result == null) return null;
@@ -167,13 +163,10 @@ namespace Rebus.MongoDb.Sagas
 
                         var index = new BsonDocument { { correlationProperty.PropertyName, 1 } };
                         var indexDef = new BsonDocumentIndexKeysDefinition<BsonDocument>(index);
-                        
-                        var model = new CreateIndexModel<BsonDocument>(indexDef)
-                        {
-                            Options = {Unique = true}
-                        };
-
-                        await mongoCollection.Indexes.CreateOneAsync(model);
+                        await mongoCollection.Indexes.CreateOneAsync(
+                            new CreateIndexModel<BsonDocument>(
+                            indexDef,
+                            new CreateIndexOptions { Unique = true }));
                     }
 
                     try

@@ -1,10 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
- <PropertyGroup>
+  <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Rebus</RootNamespace>
     <AssemblyName>Rebus.MongoDb</AssemblyName>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net48;netstandard2.0</TargetFrameworks>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <Authors>mookid8000</Authors>
     <PackageLicenseUrl></PackageLicenseUrl>
     <PackageProjectUrl>https://rebus.fm/what-is-rebus/</PackageProjectUrl>
@@ -38,9 +39,13 @@
     <DocumentationFile>bin\Release\Rebus.MongoDb.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="mongodb.driver" Version="2.13.1" />
-    <PackageReference Include="MongoDB.Driver.GridFS" Version="2.13.1" />
-    <PackageReference Include="rebus" Version="6.0.0" />
+    <Compile Remove="Properties\AssemblyInfo.cs" />
+    <None Include="icon.png" Pack="true" PackagePath="" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="mongodb.driver" Version="2.15.1" />
+    <PackageReference Include="MongoDB.Driver.GridFS" Version="2.15.1" />
+    <PackageReference Include="rebus" Version="6.6.5" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\artwork\little_rebusbus2_copy-500x500.png">
@@ -48,4 +53,8 @@
       <PackagePath></PackagePath>
     </None>
   </ItemGroup>
+
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+   
+  </Target>
 </Project>

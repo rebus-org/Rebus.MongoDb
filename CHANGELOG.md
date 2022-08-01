@@ -42,5 +42,8 @@
 ## 7.0.0-b1
 * Only target .NET Standard 2.0
 * Update MongoDB driver to 2.13.1 (fix bug that would cause Rebus.MongoDb to malfunction on .NET 5)
+* Updated MongoDB driver to 2.15.1 
+* Restored multi targeted build (Still need to be used in Net48 project)
+* Added MongoDb Transport
 
 [cgehrmann]: https://github.com/cgehrmann

@@ -7,6 +7,23 @@ Provides MongoDB persistence implementations for [Rebus](https://github.com/rebu
 * sagas
 * subscriptions
 * timeouts
+ 
+Provides transport MongoDb implementations for [Rebus](https://github.com/rebus-org/Rebus) 
+
+# Unit Tests
+
+To run unit test please provide a mongo instance to run test and set the connection string ino REBUS_MONGODB environment variable.
+
+# Local nuget pack
+
+To manually create a nuget package specifying manually the version you can use this commandline.
+
+```
+dotnet pack Rebus.MongoDb\Rebus.MongoDb.csproj -o c:\target_directory -c release /p:PackageVersion=6.0.1011 /p:AssemblyVersion=6.0.0 /p:FileVersion=6.0.0 /p:InformationalVersion=6.0.0-__SHA_OF_COMMIT__
+
+//then you need to push
+dotnet nuget push .\Rebus.MongoDb.6.0.1011.nupkg -s https://pkgs.dev.azure.com/xxxxx/_packaging/__packageName__/nuget/v3/index.json --api-key az
+```
 
 ![](https://raw.githubusercontent.com/rebus-org/Rebus/master/artwork/little_rebusbus2_copy-200x200.png)
 
