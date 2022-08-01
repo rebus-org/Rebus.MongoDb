@@ -1,50 +1,20 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
-  <PropertyGroup>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Rebus.MongoDb.Tests</RootNamespace>
-    <AssemblyName>Rebus.MongoDb.Tests</AssemblyName>
-    <TargetFrameworks>net50</TargetFrameworks>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>RELEASE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'net461' ">
-    <DefineConstants>net461</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.1' ">
-    <DefineConstants>NETCOREAPP21</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net461|AnyCPU'">
-    <WarningsAsErrors />
-  </PropertyGroup>
-  <ItemGroup>
-    <Compile Remove="Transport\Contract\**" />
-    <EmbeddedResource Remove="Transport\Contract\**" />
-    <None Remove="Transport\Contract\**" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Rebus.MongoDb\Rebus.MongoDb.csproj" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.2.0" />
-    <PackageReference Include="nunit" Version="3.13.3" />
-    <PackageReference Include="NUnit3TestAdapter" Version="4.2.1" />
-    <PackageReference Include="rebus" Version="6.6.5" />
-    <PackageReference Include="rebus.tests.contracts" Version="6.4.0" />
-  </ItemGroup>
+	<PropertyGroup>
+		<OutputType>Library</OutputType>
+		<TargetFrameworks>net60</TargetFrameworks>
+	</PropertyGroup>
+	<ItemGroup>
+		<Compile Remove="Transport\Contract\**" />
+		<EmbeddedResource Remove="Transport\Contract\**" />
+		<None Remove="Transport\Contract\**" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\Rebus.MongoDb\Rebus.MongoDb.csproj" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.2.0" />
+		<PackageReference Include="nunit" Version="3.13.3" />
+		<PackageReference Include="NUnit3TestAdapter" Version="4.2.1" />
+		<PackageReference Include="rebus" Version="6.6.5" />
+		<PackageReference Include="rebus.tests.contracts" Version="6.4.0" />
+	</ItemGroup>
 </Project>
