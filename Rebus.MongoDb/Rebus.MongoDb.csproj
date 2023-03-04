@@ -21,7 +21,7 @@
 		<None Include="icon.png" Pack="true" PackagePath="" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="mongodb.driver" Version="2.15.1" />
+		<PackageReference Include="mongodb.driver" Version="2.19.0" />
 		<PackageReference Include="MongoDB.Driver.GridFS" Version="2.15.1" />
 		<PackageReference Include="rebus" Version="6.6.5" />
 	</ItemGroup>
