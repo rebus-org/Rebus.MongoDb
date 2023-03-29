@@ -4,30 +4,29 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace Rebus.MongoDb.Tests.Helpers
+namespace Rebus.MongoDb.Tests.Helpers;
+
+public class MongoDbTestHelper
 {
-    public class MongoDbTestHelper
+    public static class BsonClassMapHelper
     {
-        public static class BsonClassMapHelper
+        public static void Unregister<T>()
         {
-            public static void Unregister<T>()
-            {
-                var classType = typeof(T);
-                GetClassMap().Remove(classType);
-            }
+            var classType = typeof(T);
+            GetClassMap().Remove(classType);
+        }
 
-            private static Dictionary<Type, BsonClassMap> GetClassMap()
-            {
-                var cm = BsonClassMap.GetRegisteredClassMaps().First();
-                var fi = typeof(BsonClassMap).GetField("__classMaps", BindingFlags.Static | BindingFlags.NonPublic);
-                var classMaps = (Dictionary<Type, BsonClassMap>)fi.GetValue(cm);
-                return classMaps;
-            }
+        static Dictionary<Type, BsonClassMap> GetClassMap()
+        {
+            var cm = BsonClassMap.GetRegisteredClassMaps().First();
+            var fi = typeof(BsonClassMap).GetField("__classMaps", BindingFlags.Static | BindingFlags.NonPublic);
+            var classMaps = (Dictionary<Type, BsonClassMap>)fi.GetValue(cm);
+            return classMaps;
+        }
 
-            public static void Clear()
-            {
-                GetClassMap().Clear();
-            }
+        public static void Clear()
+        {
+            GetClassMap().Clear();
         }
     }
 }

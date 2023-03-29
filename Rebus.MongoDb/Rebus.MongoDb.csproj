@@ -1,11 +1,10 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
 	<PropertyGroup>
 		<OutputType>Library</OutputType>
 		<RootNamespace>Rebus</RootNamespace>
 		<AssemblyName>Rebus.MongoDb</AssemblyName>
 		<TargetFrameworks>netstandard2.0</TargetFrameworks>
-		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+		<LangVersion>11</LangVersion>
 		<Authors>mookid8000</Authors>
 		<PackageProjectUrl>https://rebus.fm/what-is-rebus/</PackageProjectUrl>
 		<PackageDescription>MongoDB-based persistence for Rebus</PackageDescription>
@@ -15,15 +14,19 @@
 		<RepositoryType>git</RepositoryType>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>little_rebusbus2_copy-500x500.png</PackageIcon>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
 	</PropertyGroup>
 	<ItemGroup>
-		<Compile Remove="Properties\AssemblyInfo.cs" />
+		<None Include="..\README.md">
+		  <Pack>True</Pack>
+		  <PackagePath>\</PackagePath>
+		</None>
 		<None Include="icon.png" Pack="true" PackagePath="" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="mongodb.driver" Version="2.15.1" />
-		<PackageReference Include="MongoDB.Driver.GridFS" Version="2.15.1" />
-		<PackageReference Include="rebus" Version="6.6.5" />
+		<PackageReference Include="mongodb.driver" Version="2.19.1" />
+		<PackageReference Include="MongoDB.Driver.GridFS" Version="2.19.1" />
+		<PackageReference Include="rebus" Version="8.0.0-alpha01" />
 	</ItemGroup>
 	<ItemGroup>
 		<None Include="..\artwork\little_rebusbus2_copy-500x500.png">

@@ -4,25 +4,24 @@ using Rebus.MongoDb.Subscriptions;
 using Rebus.Subscriptions;
 using Rebus.Tests.Contracts.Subscriptions;
 
-namespace Rebus.MongoDb.Tests.Subscriptions
+namespace Rebus.MongoDb.Tests.Subscriptions;
+
+[TestFixture, Category(MongoTestHelper.TestCategory)]
+public class BasicSubscriptionOperations : BasicSubscriptionOperations<TestMongoDbSubscriptionStorage> { }
+
+public class TestMongoDbSubscriptionStorage : ISubscriptionStorageFactory
 {
-    [TestFixture, Category(MongoTestHelper.TestCategory)]
-    public class BasicSubscriptionOperations : BasicSubscriptionOperations<TestMongoDbSubscriptionStorage> { }
+    IMongoDatabase _mongoDatabase;
 
-    public class TestMongoDbSubscriptionStorage : ISubscriptionStorageFactory
+    public ISubscriptionStorage Create()
     {
-        IMongoDatabase _mongoDatabase;
-
-        public ISubscriptionStorage Create()
-        {
-            _mongoDatabase = MongoTestHelper.GetMongoDatabase();
+        _mongoDatabase = MongoTestHelper.GetMongoDatabase();
             
-            return new MongoDbSubscriptionStorage(_mongoDatabase, "subscriptions", true);
-        }
+        return new MongoDbSubscriptionStorage(_mongoDatabase, "subscriptions", true);
+    }
 
-        public void Cleanup()
-        {
-            MongoTestHelper.DropMongoDatabase();
-        }
+    public void Cleanup()
+    {
+        MongoTestHelper.DropMongoDatabase();
     }
 }

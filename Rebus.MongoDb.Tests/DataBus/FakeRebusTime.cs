@@ -1,17 +1,16 @@
 ﻿using System;
 using Rebus.Time;
 
-namespace Rebus.MongoDb.Tests.DataBus
+namespace Rebus.MongoDb.Tests.DataBus;
+
+class FakeRebusTime : IRebusTime
 {
-    class FakeRebusTime : IRebusTime
+    DateTimeOffset? _fakeTime;
+
+    public DateTimeOffset Now => _fakeTime ?? DateTimeOffset.Now;
+
+    public void SetTime(DateTimeOffset fakeTime)
     {
-        DateTimeOffset? _fakeTime;
-
-        public DateTimeOffset Now => _fakeTime ?? DateTimeOffset.Now;
-
-        public void SetTime(DateTimeOffset fakeTime)
-        {
-            _fakeTime = fakeTime;
-        }
+        _fakeTime = fakeTime;
     }
 }

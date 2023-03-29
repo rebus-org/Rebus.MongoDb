@@ -4,22 +4,21 @@ using Rebus.MongoDb.Sagas;
 using Rebus.Sagas;
 using Rebus.Tests.Contracts.Sagas;
 
-namespace Rebus.MongoDb.Tests.Sagas
+namespace Rebus.MongoDb.Tests.Sagas;
+
+public class TestMongoDbSagaStorage : ISagaStorageFactory
 {
-    public class TestMongoDbSagaStorage : ISagaStorageFactory
+    IMongoDatabase _mongoDatabase;
+
+    public ISagaStorage GetSagaStorage()
     {
-        IMongoDatabase _mongoDatabase;
+        _mongoDatabase = MongoTestHelper.GetMongoDatabase();
 
-        public ISagaStorage GetSagaStorage()
-        {
-            _mongoDatabase = MongoTestHelper.GetMongoDatabase();
+        return new MongoDbSagaStorage(_mongoDatabase, new ConsoleLoggerFactory(colored: false));
+    }
 
-            return new MongoDbSagaStorage(_mongoDatabase, new ConsoleLoggerFactory(colored: false));
-        }
-
-        public void CleanUp()
-        {
-            MongoTestHelper.DropMongoDatabase();
-        }
+    public void CleanUp()
+    {
+        MongoTestHelper.DropMongoDatabase();
     }
 }

@@ -6,36 +6,35 @@ using Rebus.Auditing.Sagas;
 using Rebus.Sagas;
 // ReSharper disable RedundantAnonymousTypePropertyName
 
-namespace Rebus.MongoDb.Sagas
+namespace Rebus.MongoDb.Sagas;
+
+/// <summary>
+/// Implementation of <see cref="ISagaSnapshotStorage"/> that uses MongoDB to do its thing
+/// </summary>
+public class MongoDbSagaSnapshotStorage : ISagaSnapshotStorage
 {
+    readonly IMongoCollection<BsonDocument> _snapshots;
+
     /// <summary>
-    /// Implementation of <see cref="ISagaSnapshotStorage"/> that uses MongoDB to do its thing
+    /// Constructs the snapshot storage
     /// </summary>
-    public class MongoDbSagaSnapshotStorage : ISagaSnapshotStorage
+    public MongoDbSagaSnapshotStorage(IMongoDatabase mongoDatabase, string collectionName)
     {
-        readonly IMongoCollection<BsonDocument> _snapshots;
+        _snapshots = mongoDatabase.GetCollection<BsonDocument>(collectionName);
+    }
 
-        /// <summary>
-        /// Constructs the snapshot storage
-        /// </summary>
-        public MongoDbSagaSnapshotStorage(IMongoDatabase mongoDatabase, string collectionName)
+    /// <summary>
+    /// Saves a snapshot of the given saga data
+    /// </summary>
+    public async Task Save(ISagaData sagaData, Dictionary<string, string> sagaAuditMetadata)
+    {
+        var document = new BsonDocument
         {
-            _snapshots = mongoDatabase.GetCollection<BsonDocument>(collectionName);
-        }
+            {"_id", new {Id = sagaData.Id, Revision = sagaData.Revision}.ToBsonDocument()},
+            {"Metadata", sagaAuditMetadata.ToBsonDocument()},
+            {"Data", sagaData.ToBsonDocument()}
+        };
 
-        /// <summary>
-        /// Saves a snapshot of the given saga data
-        /// </summary>
-        public async Task Save(ISagaData sagaData, Dictionary<string, string> sagaAuditMetadata)
-        {
-            var document = new BsonDocument
-            {
-                {"_id", new {Id = sagaData.Id, Revision = sagaData.Revision}.ToBsonDocument()},
-                {"Metadata", sagaAuditMetadata.ToBsonDocument()},
-                {"Data", sagaData.ToBsonDocument()}
-            };
-
-            await _snapshots.InsertOneAsync(document);
-        }
+        await _snapshots.InsertOneAsync(document);
     }
 }

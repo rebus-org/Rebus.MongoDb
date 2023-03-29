@@ -9,65 +9,64 @@ using Rebus.MongoDb.Sagas;
 using Rebus.Sagas;
 using Rebus.Tests.Contracts.Sagas;
 
-namespace Rebus.MongoDb.Tests.Sagas
+namespace Rebus.MongoDb.Tests.Sagas;
+
+public class MongoDbSnapshotStorageFactory : ISagaSnapshotStorageFactory
 {
-    public class MongoDbSnapshotStorageFactory : ISagaSnapshotStorageFactory
+    const string CollectionName = "SagaSnaps";
+    readonly IMongoDatabase _mongoDatabase;
+
+    public MongoDbSnapshotStorageFactory()
     {
-        const string CollectionName = "SagaSnaps";
-        readonly IMongoDatabase _mongoDatabase;
-
-        public MongoDbSnapshotStorageFactory()
-        {
-            MongoTestHelper.DropMongoDatabase();
+        MongoTestHelper.DropMongoDatabase();
         
-            _mongoDatabase = MongoTestHelper.GetMongoDatabase();
-        }
+        _mongoDatabase = MongoTestHelper.GetMongoDatabase();
+    }
 
-        public ISagaSnapshotStorage Create()
+    public ISagaSnapshotStorage Create()
+    {
+        return new MongoDbSagaSnapshotStorage(_mongoDatabase, CollectionName);
+    }
+
+    public IEnumerable<SagaDataSnapshot> GetAllSnapshots()
+    {
+        var snaps = _mongoDatabase.GetCollection<BsonDocument>(CollectionName)
+            .FindAsync(_ => true).Result
+            .ToListAsync().Result;
+
+        return snaps.Select(doc =>
         {
-            return new MongoDbSagaSnapshotStorage(_mongoDatabase, CollectionName);
-        }
+            var metadataDocument = doc["Metadata"].AsBsonDocument;
 
-        public IEnumerable<SagaDataSnapshot> GetAllSnapshots()
-        {
-            var snaps = _mongoDatabase.GetCollection<BsonDocument>(CollectionName)
-                .FindAsync(_ => true).Result
-                .ToListAsync().Result;
-
-            return snaps.Select(doc =>
+            if (metadataDocument == null)
             {
-                var metadataDocument = doc["Metadata"].AsBsonDocument;
+                throw new ArgumentException($"Could not find 'Metadata' document in: {doc}");
+            }
 
-                if (metadataDocument == null)
-                {
-                    throw new ArgumentException($"Could not find 'Metadata' document in: {doc}");
-                }
+            var sagaDataDocument = doc["Data"].AsBsonDocument;
 
-                var sagaDataDocument = doc["Data"].AsBsonDocument;
+            if (sagaDataDocument == null)
+            {
+                throw new ArgumentException($"Could not find 'Data' document in: {doc}");
+            }
 
-                if (sagaDataDocument == null)
-                {
-                    throw new ArgumentException($"Could not find 'Data' document in: {doc}");
-                }
+            var metadata = BsonSerializer.Deserialize<Dictionary<string,string>>(metadataDocument);
+            var sagaDataTypeName = metadata[SagaAuditingMetadataKeys.SagaDataType];
+            var type = Type.GetType(sagaDataTypeName);
 
-                var metadata = BsonSerializer.Deserialize<Dictionary<string,string>>(metadataDocument);
-                var sagaDataTypeName = metadata[SagaAuditingMetadataKeys.SagaDataType];
-                var type = Type.GetType(sagaDataTypeName);
+            if (type == null)
+            {
+                throw new ArgumentException(
+                    $"Cannot deserialize saga data snapshot of type '{sagaDataTypeName}' because the corresponding .NET type could not be found!");
+            }
 
-                if (type == null)
-                {
-                    throw new ArgumentException(
-                        $"Cannot deserialize saga data snapshot of type '{sagaDataTypeName}' because the corresponding .NET type could not be found!");
-                }
+            var sagaData = BsonSerializer.Deserialize(sagaDataDocument, type);
 
-                var sagaData = BsonSerializer.Deserialize(sagaDataDocument, type);
-
-                return new SagaDataSnapshot
-                {
-                    Metadata = metadata,
-                    SagaData = (ISagaData)sagaData,
-                };
-            });
-        }
+            return new SagaDataSnapshot
+            {
+                Metadata = metadata,
+                SagaData = (ISagaData)sagaData,
+            };
+        });
     }
 }

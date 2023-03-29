@@ -3,58 +3,57 @@ using MongoDB.Bson;
 using MongoDB.Driver;
 using Rebus.Tests.Contracts;
 
-namespace Rebus.MongoDb.Tests
+namespace Rebus.MongoDb.Tests;
+
+public class MongoTestHelper
 {
-    public class MongoTestHelper
+    public const string TestCategory = "mongodb";
+
+    public static MongoUrl GetUrl()
     {
-        public const string TestCategory = "mongodb";
+        var suffix = TestConfig.Suffix;
 
-        public static MongoUrl GetUrl()
+        var databaseName = $"rebus2_test_{suffix}".TrimEnd('_');
+
+        var serverUrl = Environment.GetEnvironmentVariable("REBUS_MONGODB") ?? "mongodb://localhost";
+        var builder = new MongoUrlBuilder(serverUrl) { DatabaseName = databaseName };
+        var mongoUrl = builder.ToMongoUrl();
+
+        Console.WriteLine("Using MongoDB {0}", mongoUrl);
+
+        return mongoUrl;
+    }
+
+    internal static void DropCollection(string collectionName)
+    {
+        GetMongoDatabase().DropCollection(collectionName);
+    }
+
+    public static IMongoDatabase GetMongoDatabase()
+    {
+        return GetMongoDatabase(GetMongoClient());
+    }
+
+    public static void DropMongoDatabase()
+    {
+        GetMongoClient().DropDatabaseAsync(GetUrl().DatabaseName).Wait();
+    }
+
+    static IMongoDatabase GetMongoDatabase(IMongoClient mongoClient)
+    {
+        var url = GetUrl();
+        var settings = new MongoDatabaseSettings
         {
-            var suffix = TestConfig.Suffix;
+            GuidRepresentation = GuidRepresentation.Standard,
+            WriteConcern = WriteConcern.Acknowledged
+        };
+        return mongoClient.GetDatabase(url.DatabaseName, settings);
+    }
 
-            var databaseName = $"rebus2_test_{suffix}".TrimEnd('_');
+    static IMongoClient GetMongoClient()
+    {
+        var url = GetUrl();
 
-            var serverUrl = Environment.GetEnvironmentVariable("REBUS_MONGODB") ?? "mongodb://localhost";
-            var builder = new MongoUrlBuilder(serverUrl) { DatabaseName = databaseName };
-            var mongoUrl = builder.ToMongoUrl();
-
-            Console.WriteLine("Using MongoDB {0}", mongoUrl);
-
-            return mongoUrl;
-        }
-
-        internal static void DropCollection(string collectionName)
-        {
-            GetMongoDatabase().DropCollection(collectionName);
-        }
-
-        public static IMongoDatabase GetMongoDatabase()
-        {
-            return GetMongoDatabase(GetMongoClient());
-        }
-
-        public static void DropMongoDatabase()
-        {
-            GetMongoClient().DropDatabaseAsync(GetUrl().DatabaseName).Wait();
-        }
-
-        static IMongoDatabase GetMongoDatabase(IMongoClient mongoClient)
-        {
-            var url = GetUrl();
-            var settings = new MongoDatabaseSettings
-            {
-                GuidRepresentation = GuidRepresentation.Standard,
-                WriteConcern = WriteConcern.Acknowledged
-            };
-            return mongoClient.GetDatabase(url.DatabaseName, settings);
-        }
-
-        static IMongoClient GetMongoClient()
-        {
-            var url = GetUrl();
-
-            return new MongoClient(url);
-        }
+        return new MongoClient(url);
     }
 }

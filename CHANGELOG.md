@@ -46,6 +46,11 @@
 * Restored multi targeted build (Still need to be used in Net48 project)
 * Added MongoDb Transport - thanks [AGiorgetti] and [alkampfergit]
 
+## 8.0.0-alpha01
+* Remove MongoDB transport again, because it could lose messages and thus did not qualify as a proper Rebus transport
+* Update MongoDB driver to 2.19.1
+* Update to Rebus 8
+
 [AGiorgetti]: https://github.com/AGiorgetti
 [alkampfergit]: https://github.com/alkampfergit
 [cgehrmann]: https://github.com/cgehrmann

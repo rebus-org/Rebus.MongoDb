@@ -1,20 +1,13 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
 	<PropertyGroup>
 		<OutputType>Library</OutputType>
-		<TargetFrameworks>net60</TargetFrameworks>
+		<TargetFrameworks>net70</TargetFrameworks>
 	</PropertyGroup>
 	<ItemGroup>
-		<Compile Remove="Transport\Contract\**" />
-		<EmbeddedResource Remove="Transport\Contract\**" />
-		<None Remove="Transport\Contract\**" />
-	</ItemGroup>
-	<ItemGroup>
 		<ProjectReference Include="..\Rebus.MongoDb\Rebus.MongoDb.csproj" />
-		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.2.0" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.5.0" />
 		<PackageReference Include="nunit" Version="3.13.3" />
-		<PackageReference Include="NUnit3TestAdapter" Version="4.2.1" />
-		<PackageReference Include="rebus" Version="6.6.5" />
-		<PackageReference Include="rebus.tests.contracts" Version="6.4.0" />
+		<PackageReference Include="NUnit3TestAdapter" Version="4.4.2" />
+		<PackageReference Include="rebus.tests.contracts" Version="8.0.0-alpha01" />
 	</ItemGroup>
 </Project>

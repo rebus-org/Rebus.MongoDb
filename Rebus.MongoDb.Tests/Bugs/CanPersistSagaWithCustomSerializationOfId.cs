@@ -14,94 +14,93 @@ using Rebus.Tests.Contracts;
 using Rebus.Transport.InMem;
 #pragma warning disable 1998
 
-namespace Rebus.MongoDb.Tests.Bugs
+namespace Rebus.MongoDb.Tests.Bugs;
+
+[TestFixture]
+public class CanPersistSagaWithCustomSerializationOfId : FixtureBase
 {
-    [TestFixture]
-    public class CanPersistSagaWithCustomSerializationOfId : FixtureBase
+    static CanPersistSagaWithCustomSerializationOfId()
     {
-        static CanPersistSagaWithCustomSerializationOfId()
-        {
-            // this line affects all tests, so we comment it out to be enabled explicitly
-            //BsonSerializer.RegisterSerializer(typeof(Guid), new GuidSerializer(BsonType.String));
-        }
+        // this line affects all tests, so we comment it out to be enabled explicitly
+        //BsonSerializer.RegisterSerializer(typeof(Guid), new GuidSerializer(BsonType.String));
+    }
 
-        IMongoDatabase _database;
+    IMongoDatabase _database;
 
-        protected override void SetUp()
-        {
-            MongoTestHelper.DropMongoDatabase();
-            _database = MongoTestHelper.GetMongoDatabase();
+    protected override void SetUp()
+    {
+        MongoTestHelper.DropMongoDatabase();
+        _database = MongoTestHelper.GetMongoDatabase();
 
-        }
+    }
 
-        protected override void TearDown()
-        {
-            MongoTestHelper.DropMongoDatabase();
-        }
+    protected override void TearDown()
+    {
+        MongoTestHelper.DropMongoDatabase();
+    }
 
-        [TestCase(1)]
-        [TestCase(5)]
-        public async Task ItWorks(int maxParallelism)
-        {
-            var activator = new BuiltinHandlerActivator();
+    [TestCase(1)]
+    [TestCase(5)]
+    public async Task ItWorks(int maxParallelism)
+    {
+        var activator = new BuiltinHandlerActivator();
             
-            Using(activator);
+        Using(activator);
 
-            activator.Register(() => new SomeSaga());
+        activator.Register(() => new SomeSaga());
 
-            var bus = Configure.With(activator)
-                .Transport(t => t.UseInMemoryTransport(new InMemNetwork(), "saga-test"))
-                .Sagas(s => s.StoreInMongoDb(_database))
-                .Options(o => o.SetMaxParallelism(maxParallelism))
-                .Start();
+        var bus = Configure.With(activator)
+            .Transport(t => t.UseInMemoryTransport(new InMemNetwork(), "saga-test"))
+            .Sagas(s => s.StoreInMongoDb(_database))
+            .Options(o => o.SetMaxParallelism(maxParallelism))
+            .Start();
 
-            var correlationId = Guid.NewGuid().ToString();
+        var correlationId = Guid.NewGuid().ToString();
 
-            await bus.SendLocal(new IncreaseCount(correlationId));
-            await bus.SendLocal(new IncreaseCount(correlationId));
-            await bus.SendLocal(new IncreaseCount(correlationId));
+        await bus.SendLocal(new IncreaseCount(correlationId));
+        await bus.SendLocal(new IncreaseCount(correlationId));
+        await bus.SendLocal(new IncreaseCount(correlationId));
 
-            var collection = _database.GetCollection<SomeSagaData>(nameof(SomeSagaData));
+        var collection = _database.GetCollection<SomeSagaData>(nameof(SomeSagaData));
 
-            await collection.WaitFor(c => c.CountDocuments(d => true) >= 1);
-            await Task.Delay(TimeSpan.FromSeconds(1));
+        await collection.WaitFor(c => c.CountDocuments(d => true) >= 1);
+        await Task.Delay(TimeSpan.FromSeconds(1));
             
-            var docs = collection.Find(x => true).ToList();
+        var docs = collection.Find(x => true).ToList();
 
-            Assert.That(docs.Count, Is.EqualTo(1));
+        Assert.That(docs.Count, Is.EqualTo(1));
 
-            var data = docs.First();
+        var data = docs.First();
 
-            Assert.That(data.MessageCount, Is.EqualTo(3));
-        }
+        Assert.That(data.MessageCount, Is.EqualTo(3));
+    }
         
-        class SomeSagaData : SagaData
+    class SomeSagaData : SagaData
+    {
+        public string CorrelationId { get; set; }
+        public int MessageCount { get; set; }
+    }
+
+    class SomeSaga : Saga<SomeSagaData>, IAmInitiatedBy<IncreaseCount>
+    {
+        protected override void CorrelateMessages(ICorrelationConfig<SomeSagaData> config)
         {
-            public string CorrelationId { get; set; }
-            public int MessageCount { get; set; }
+            config.Correlate<IncreaseCount>(m => m.CorrelationId, d => d.CorrelationId);
         }
 
-        class SomeSaga : Saga<SomeSagaData>, IAmInitiatedBy<IncreaseCount>
+        public async Task Handle(IncreaseCount message)
         {
-            protected override void CorrelateMessages(ICorrelationConfig<SomeSagaData> config)
-            {
-                config.Correlate<IncreaseCount>(m => m.CorrelationId, d => d.CorrelationId);
-            }
+            Data.MessageCount++;
+        }
+    }
 
-            public async Task Handle(IncreaseCount message)
-            {
-                Data.MessageCount++;
-            }
+    class IncreaseCount
+    {
+        public IncreaseCount(string correlationId)
+        {
+            CorrelationId = correlationId;
         }
 
-        class IncreaseCount
-        {
-            public IncreaseCount(string correlationId)
-            {
-                CorrelationId = correlationId;
-            }
-
-            public string CorrelationId { get;  }
-        }
+        public string CorrelationId { get;  }
     }
 }
