@@ -45,7 +45,7 @@ public class MongoTestHelper
         var settings = new MongoDatabaseSettings
         {
             GuidRepresentation = GuidRepresentation.Standard,
-            WriteConcern = WriteConcern.Acknowledged
+            WriteConcern = WriteConcern.Acknowledged,
         };
         return mongoClient.GetDatabase(url.DatabaseName, settings);
     }

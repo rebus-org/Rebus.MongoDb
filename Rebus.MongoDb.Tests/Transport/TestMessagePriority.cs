@@ -17,66 +17,66 @@
 
 //namespace Rebus.MongoDb.Tests.Transport
 //{
-//    [TestFixture]
-//    public class TestMessagePriority : FixtureBase
-//    {
-//        protected override void SetUp() => MongoTestHelper.DropMongoDatabase();
+//   [TestFixture]
+//   public class TestMessagePriority : FixtureBase
+//   {
+//      protected override void SetUp() => MongoTestHelper.DropMongoDatabase();
 
-//        [Test]
-//        public async Task ReceivedMessagesByPriority_HigherIsMoreImportant_Normal() => await RunTest(20);
+//      [Test]
+//      public async Task ReceivedMessagesByPriority_HigherIsMoreImportant_Normal() => await RunTest(20);
 
-//        async Task RunTest(int messageCount)
-//        {
-//            var counter = new SharedCounter(messageCount);
-//            var receivedMessagePriorities = new List<int>();
-//            var server = new BuiltinHandlerActivator();
+//      async Task RunTest(int messageCount)
+//      {
+//         var counter = new SharedCounter(messageCount);
+//         var receivedMessagePriorities = new List<int>();
+//         var server = new BuiltinHandlerActivator();
 
-//            server.Handle<string>(async str =>
-//            {
-//                Console.WriteLine($"Received message: {str}");
-//                var parts = str.Split(' ');
-//                var priority = int.Parse(parts[1]);
-//                receivedMessagePriorities.Add(priority);
-//                counter.Decrement();
-//            });
+//         server.Handle<string>(async str =>
+//         {
+//            Console.WriteLine($"Received message: {str}");
+//            var parts = str.Split(' ');
+//            var priority = int.Parse(parts[1]);
+//            receivedMessagePriorities.Add(priority);
+//            counter.Decrement();
+//         });
 
-//            var serverBus = Configure.With(Using(server))
-//                .Transport(t =>
-//                {
-//                    t.UseMongoDb(new MongoDbTransportOptions(MongoTestHelper.GetUrl()), "server");
-//                })
-//                .Options(o =>
-//                {
-//                    o.SetNumberOfWorkers(0);
-//                    o.SetMaxParallelism(1);
-//                })
-//                .Start();
+//         var serverBus = Configure.With(Using(server))
+//             .Transport(t =>
+//             {
+//                t.UseMongoDb(new MongoDbTransportOptions(MongoTestHelper.GetUrl()), "server");
+//             })
+//             .Options(o =>
+//             {
+//                o.SetNumberOfWorkers(0);
+//                o.SetMaxParallelism(1);
+//             })
+//             .Start();
 
-//            var clientBus = Configure.With(Using(new BuiltinHandlerActivator()))
-//                .Transport(t =>
-//                {
-//                    t.UseMongoDbAsOneWayClient(new MongoDbTransportOptions(MongoTestHelper.GetUrl()));
-//                })
-//                .Routing(t => t.TypeBased().Map<string>("server"))
-//                .Start();
+//         var clientBus = Configure.With(Using(new BuiltinHandlerActivator()))
+//             .Transport(t =>
+//             {
+//                t.UseMongoDbAsOneWayClient(new MongoDbTransportOptions(MongoTestHelper.GetUrl()));
+//             })
+//             .Routing(t => t.TypeBased().Map<string>("server"))
+//             .Start();
 
-//            await Task.WhenAll(Enumerable.Range(0, messageCount)
-//                .InRandomOrder()
-//                .Select(priority => SendPriMsg(clientBus, priority)));
+//         await Task.WhenAll(Enumerable.Range(0, messageCount)
+//             .InRandomOrder()
+//             .Select(priority => SendPriMsg(clientBus, priority)));
 
-//            serverBus.Advanced.Workers.SetNumberOfWorkers(1);
+//         serverBus.Advanced.Workers.SetNumberOfWorkers(1);
 
-//            counter.WaitForResetEvent();
+//         counter.WaitForResetEvent();
 
-//            await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
+//         await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
 
-//            Assert.That(receivedMessagePriorities.Count, Is.EqualTo(messageCount));
-//            Assert.That(receivedMessagePriorities.ToArray(), Is.EqualTo(Enumerable.Range(0, messageCount).Reverse().ToArray()));
-//        }
+//         Assert.That(receivedMessagePriorities.Count, Is.EqualTo(messageCount));
+//         Assert.That(receivedMessagePriorities.ToArray(), Is.EqualTo(Enumerable.Range(0, messageCount).Reverse().ToArray()));
+//      }
 
-//        static Task SendPriMsg(IBus clientBus, int priority) => clientBus.Send($"prioritet {priority}", new Dictionary<string, string>
+//      static Task SendPriMsg(IBus clientBus, int priority) => clientBus.Send($"prioritet {priority}", new Dictionary<string, string>
 //        {
 //            { MongoDbTransport.MessagePriorityHeaderKey, priority.ToString()}
 //        });
-//    }
+//   }
 //}
