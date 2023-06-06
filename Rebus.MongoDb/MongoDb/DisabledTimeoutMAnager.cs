@@ -22,8 +22,5 @@ class DisabledTimeoutManager : ITimeoutManager
         throw new InvalidOperationException(message);
     }
 
-    public Task<DueMessagesResult> GetDueMessages()
-    {
-        return Task<DueMessagesResult>.FromResult(DueMessagesResult.Empty);
-    }
+    public Task<DueMessagesResult> GetDueMessages() => Task.FromResult(DueMessagesResult.Empty);
 }

@@ -8,7 +8,7 @@ namespace Rebus.Config;
 /// </summary>
 public class MongoDbTransportOptions
 {
-   private const string DefaultCollectionName = "messages";
+    const string DefaultCollectionName = "messages";
 
    /// <summary>
    /// Creates an instance of the transport connecting via <paramref name="connectionString"/>

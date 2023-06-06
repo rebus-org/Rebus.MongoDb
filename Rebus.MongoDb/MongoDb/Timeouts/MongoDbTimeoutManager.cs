@@ -9,6 +9,7 @@ using Rebus.Logging;
 using Rebus.Messages;
 using Rebus.Time;
 using Rebus.Timeouts;
+// ReSharper disable AutoPropertyCanBeMadeGetOnly.Local
 
 namespace Rebus.MongoDb.Timeouts;
 

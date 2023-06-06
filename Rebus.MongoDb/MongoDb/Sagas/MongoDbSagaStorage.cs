@@ -10,7 +10,6 @@ using MongoDB.Driver;
 using Rebus.Exceptions;
 using Rebus.Sagas;
 using MongoDB.Bson.Serialization;
-using MongoDB.Bson.Serialization.Serializers;
 using Rebus.Bus;
 using Rebus.Logging;
 using Rebus.Messages;

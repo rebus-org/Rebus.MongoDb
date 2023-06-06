@@ -1,9 +1,8 @@
 ﻿using NUnit.Framework;
-using Rebus.MongoDb.Tests.Transport.Contract.Factories;
+using Rebus.MongoDb.Tests.Transport.Contracts.Factories;
 using Rebus.Tests.Contracts.Transports;
 
-namespace Rebus.MongoDb.Tests.Transport.Contract
-{
-   [TestFixture, Category(MongoTestHelper.TestCategory)]
-   public class MongoDbTestManyMessages : TestManyMessages<MongoDbBusFactory> { }
-}
+namespace Rebus.MongoDb.Tests.Transport.Contracts;
+
+[TestFixture, Category(MongoTestHelper.TestCategory)]
+public class MongoDbTestManyMessages : TestManyMessages<MongoDbBusFactory> { }

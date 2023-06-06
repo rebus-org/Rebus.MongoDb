@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Rebus.Config;
+﻿namespace Rebus.Config;
 
 /// <summary>
 /// Provides extensions for managing <seealso cref="MongoDbTransportOptions"/>
