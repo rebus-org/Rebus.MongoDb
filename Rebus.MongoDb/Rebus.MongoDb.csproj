@@ -24,10 +24,10 @@
 		<None Include="icon.png" Pack="true" PackagePath="" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="mongodb.driver" Version="2.19.1" />
-		<PackageReference Include="MongoDB.Driver.GridFS" Version="2.19.1" />
+		<PackageReference Include="mongodb.driver" Version="2.19.2" />
+		<PackageReference Include="MongoDB.Driver.GridFS" Version="2.19.2" />
 		<PackageReference Include="Nito.AsyncEx" Version="5.1.2" />
-		<PackageReference Include="rebus" Version="8.0.0-alpha01" />
+		<PackageReference Include="rebus" Version="8.0.0-alpha09" />
 	</ItemGroup>
 	<ItemGroup>
 		<None Include="..\artwork\little_rebusbus2_copy-500x500.png">
