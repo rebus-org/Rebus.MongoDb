@@ -26,6 +26,7 @@
 	<ItemGroup>
 		<PackageReference Include="mongodb.driver" Version="2.19.1" />
 		<PackageReference Include="MongoDB.Driver.GridFS" Version="2.19.1" />
+		<PackageReference Include="Nito.AsyncEx" Version="5.1.2" />
 		<PackageReference Include="rebus" Version="8.0.0-alpha01" />
 	</ItemGroup>
 	<ItemGroup>
