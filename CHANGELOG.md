@@ -50,7 +50,10 @@
 * Remove MongoDB transport again, because it could lose messages and thus did not qualify as a proper Rebus transport
 * Update MongoDB driver to 2.19.1
 * Update to Rebus 8
+* Bring back MongoDB transport - thanks [AlesDo]
+
 
 [AGiorgetti]: https://github.com/AGiorgetti
+[AlesDo]: https://github.com/AlesDo
 [alkampfergit]: https://github.com/alkampfergit
 [cgehrmann]: https://github.com/cgehrmann
