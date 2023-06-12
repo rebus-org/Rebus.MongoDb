@@ -4,8 +4,6 @@ using Rebus.MongoDb;
 using Rebus.MongoDb.Transport;
 using Rebus.Pipeline;
 using Rebus.Pipeline.Receive;
-using Rebus.Threading;
-using Rebus.Time;
 using Rebus.Timeouts;
 using Rebus.Transport;
 
@@ -27,18 +25,14 @@ public static class MongoDbTransportConfigurationExtensions
         MongoDbTransportOptions transportOptions,
         string inputQueueName)
     {
-        if (!string.IsNullOrEmpty(inputQueueName))
-        {
-            transportOptions.SetInputQueueName(inputQueueName);
-        }
         return Configure(
-                configurer,
-                (context) => new MongoDbTransport(
-                    context.Get<IRebusLoggerFactory>(),
-                    transportOptions),
-                transportOptions
-            )
-            .ReadFrom(inputQueueName);
+            configurer,
+            context => new MongoDbTransport(
+                rebusLoggerFactory: context.Get<IRebusLoggerFactory>(),
+                mongoDbTransportOptions: transportOptions,
+                inputQueueName: inputQueueName),
+            transportOptions
+        );
     }
 
     /// <summary>
@@ -51,13 +45,14 @@ public static class MongoDbTransportConfigurationExtensions
         this StandardConfigurer<ITransport> configurer, MongoDbTransportOptions transportOptions)
     {
         return Configure(
-                configurer,
-                (context) => new MongoDbTransport(
-                    context.Get<IRebusLoggerFactory>(),
-                    transportOptions),
-                transportOptions
-            )
-            .AsOneWayClient();
+            configurer,
+            context => new MongoDbTransport(
+                rebusLoggerFactory: context.Get<IRebusLoggerFactory>(),
+                inputQueueName: null,
+                mongoDbTransportOptions: transportOptions
+            ),
+            transportOptions
+        );
     }
 
     delegate MongoDbTransport TransportFactoryDelegate(
@@ -70,11 +65,12 @@ public static class MongoDbTransportConfigurationExtensions
     {
         configurer.Register(context =>
             {
-                if (transportOptions.IsOneWayQueue)
+                var transport = transportFactory(context);
+
+                if (transport.Address == null)
                 {
                     OneWayClientBackdoor.ConfigureOneWayClient(configurer);
                 }
-                var transport = transportFactory(context);
 
                 return transport;
             }

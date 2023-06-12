@@ -69,4 +69,8 @@ public class MongoDbSnapshotStorageFactory : ISagaSnapshotStorageFactory
             };
         });
     }
+
+    public void Dispose()
+    {
+    }
 }

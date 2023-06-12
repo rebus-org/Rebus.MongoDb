@@ -20,12 +20,18 @@ public class MongoDbTransport : AbstractRebusTransport
     /// </summary>
     public const string MagicExternalTimeoutManagerAddress = "##### MagicExternalTimeoutManagerAddress #####";
 
-    public MongoDbTransport(IRebusLoggerFactory rebusLoggerFactory, MongoDbTransportOptions mongoDbTransportOptions) : base(mongoDbTransportOptions.InputQueueName)
+    public MongoDbTransport(IRebusLoggerFactory rebusLoggerFactory, string inputQueueName, MongoDbTransportOptions mongoDbTransportOptions) : base(inputQueueName)
     {
         _logger = rebusLoggerFactory.GetLogger<MongoDbTransport>();
         try
         {
-            var configuration = new MongoDbTransportConfiguration(mongoDbTransportOptions.ConnectionString, "messages");
+            var connectionString = mongoDbTransportOptions.ConnectionString;
+            
+            var configuration = new MongoDbTransportConfiguration(
+                mongoUrl: connectionString,
+                collectionName: mongoDbTransportOptions.CollectionName,
+                automaticallyCreateIndex: mongoDbTransportOptions.AutomaticallyCreateIndex
+            );
 
             _mongoDbMessageProducer = configuration.CreateProducer();
 
@@ -43,6 +49,7 @@ public class MongoDbTransport : AbstractRebusTransport
 
     public override void CreateQueue(string address)
     {
+        // queues do not have to be created with the MongoDB transport
     }
 
     public override async Task<TransportMessage> Receive(ITransactionContext context, CancellationToken cancellationToken)

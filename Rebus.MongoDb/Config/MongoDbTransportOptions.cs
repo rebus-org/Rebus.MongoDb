@@ -8,55 +8,43 @@ namespace Rebus.Config;
 /// </summary>
 public class MongoDbTransportOptions
 {
-    const string DefaultCollectionName = "messages";
+    /// <summary>
+    /// Indicates the default collection name to use for storing messages. This is not the same as "queue names", as
+    /// one single collection can be used for multiple logical queues and must be shared between Rebus instances that must be
+    /// able to communication with each other.
+    /// </summary>
+    public const string DefaultCollectionName = "messages";
 
-   /// <summary>
-   /// Creates an instance of the transport connecting via <paramref name="connectionString"/>
-   /// </summary>
-   public MongoDbTransportOptions(
-       string connectionString, string collectionName = DefaultCollectionName) : this(new MongoUrl(connectionString), collectionName)
-   {
-   }
+    /// <summary>
+    /// Indicates that indexes are created by default.
+    /// </summary>
+    public const bool DefaultAutomaticallyCreateIndex = true;
 
-   /// <summary>
-   /// Creates an instance of transport connection
-   /// </summary>
-   /// <param name="connectionString"></param>
-   public MongoDbTransportOptions(MongoUrl connectionString, string collectionName = DefaultCollectionName)
-   {
-      ConnectionString = connectionString;
-      CollectionName = collectionName;
-   }
+    /// <summary>
+    /// Creates an instance of the transport connecting via <paramref name="connectionString"/>
+    /// </summary>
+    public MongoDbTransportOptions(
+        string connectionString,
+        string collectionName = DefaultCollectionName,
+        bool automaticallyCreateIndex = DefaultAutomaticallyCreateIndex)
+        : this(new MongoUrl(connectionString), collectionName, automaticallyCreateIndex)
+    {
+    }
 
-   /// <summary>
-   /// Set input queue name value
-   /// </summary>
-   /// <param name="inputQueueName"></param>
-   /// <returns></returns>
-   public MongoDbTransportOptions SetInputQueueName(string inputQueueName)
-   {
-      this.InputQueueName = inputQueueName;
-      return this;
-   }
+    /// <summary>
+    /// Creates an instance of transport connection
+    /// </summary>
+    public MongoDbTransportOptions(MongoUrl connectionString, string collectionName = DefaultCollectionName, bool automaticallyCreateIndex = DefaultAutomaticallyCreateIndex)
+    {
+        ConnectionString = connectionString;
+        CollectionName = collectionName;
+        AutomaticallyCreateIndex = automaticallyCreateIndex;
+    }
 
-   /// <summary>
-   /// Connection string.
-   /// </summary>
-   public MongoUrl ConnectionString { get; internal set; }
-   public string CollectionName { get; internal set; }
 
-   /// <summary>
-   /// Name of the input queue to process. If <c>null</c> or whitespace the transport will be configured in one way mode (send only)
-   /// </summary>
-   public string InputQueueName { get; internal set; }
+    internal MongoUrl ConnectionString { get; set; }
 
-   /// <summary>
-   /// If <c>false</c> collections will not be created and must be created outside of Rebus
-   /// </summary>
-   public bool EnsureCollectionsAreCreated { get; internal set; } = true;
+    internal string CollectionName { get; set; }
 
-   /// <summary>
-   /// If <c>true</c> the transport is configured in one way mode
-   /// </summary>
-   public bool IsOneWayQueue => InputQueueName == null;
+    internal bool AutomaticallyCreateIndex { get; }
 }

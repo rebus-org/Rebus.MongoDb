@@ -29,13 +29,9 @@ public class TestMongoDbTransport : FixtureBase
 
         var consoleLoggerFactory = new ConsoleLoggerFactory(false);
 
-        MongoDbTransportOptions mongoDbTransportOptions =
-            new MongoDbTransportOptions(MongoTestHelper.GetUrl())
-                .SetInputQueueName(QueueName);
-        _transport = new MongoDbTransport(
-            consoleLoggerFactory,
-            mongoDbTransportOptions);
-
+        var mongoDbTransportOptions = new MongoDbTransportOptions(MongoTestHelper.GetUrl());
+        
+        _transport = new MongoDbTransport(consoleLoggerFactory, QueueName, mongoDbTransportOptions);
         _cancellationToken = new CancellationTokenSource().Token;
     }
 

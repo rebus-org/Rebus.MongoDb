@@ -25,22 +25,17 @@ class MongoDbTransportConfiguration
     public const int DefaultMaxDeliveryAttempts = 5;
 
     /// <summary>
+    /// Indicates that the default is to automatically create the index necessary for messages to be received efficiently.
+    /// </summary>
+    public const bool DefaultAutomaticallyCreateIndex = true;
+
+    /// <summary>
     /// Creates the configuration using the given MongoDB URL (which MUST contain a database name) and <paramref name="collectionName"/>.
     /// Optionally specifies the default lease time in seconds by setting <paramref name="defaultMessageLeaseSeconds"/> (default is <see cref="DefaultMessageLeaseSeconds"/>).
     /// Optionally specifies the default max parallelism by setting <paramref name="maxParallelism"/> (default is <see cref="DefaultMaxParallelism"/>).
     /// </summary>
-    public MongoDbTransportConfiguration(MongoUrl mongoUrl, string collectionName, int defaultMessageLeaseSeconds = DefaultMessageLeaseSeconds, int maxParallelism = DefaultMaxParallelism, int maxDeliveryAttempts = DefaultMaxDeliveryAttempts)
-        : this(mongoUrl.GetMongoDatabase(), collectionName, defaultMessageLeaseSeconds, maxParallelism, maxDeliveryAttempts)
-    {
-    }
-
-    /// <summary>
-    /// Creates the configuration using the given MongoDB connection string (which MUST contain a database name) and <paramref name="collectionName"/>.
-    /// Optionally specifies the default lease time in seconds by setting <paramref name="defaultMessageLeaseSeconds"/> (default is <see cref="DefaultMessageLeaseSeconds"/>).
-    /// Optionally specifies the default max parallelism by setting <paramref name="maxParallelism"/> (default is <see cref="DefaultMaxParallelism"/>).
-    /// </summary>
-    public MongoDbTransportConfiguration(string connectionString, string collectionName, int defaultMessageLeaseSeconds = DefaultMessageLeaseSeconds, int maxParallelism = DefaultMaxParallelism, int maxDeliveryAttempts = DefaultMaxDeliveryAttempts)
-        : this(connectionString.GetMongoDatabase(), collectionName, defaultMessageLeaseSeconds, maxParallelism, maxDeliveryAttempts)
+    public MongoDbTransportConfiguration(MongoUrl mongoUrl, string collectionName, int defaultMessageLeaseSeconds = DefaultMessageLeaseSeconds, int maxParallelism = DefaultMaxParallelism, int maxDeliveryAttempts = DefaultMaxDeliveryAttempts, bool automaticallyCreateIndex = DefaultAutomaticallyCreateIndex)
+        : this(mongoUrl.GetMongoDatabase(), collectionName, defaultMessageLeaseSeconds, maxParallelism, maxDeliveryAttempts, automaticallyCreateIndex)
     {
     }
 
@@ -49,7 +44,7 @@ class MongoDbTransportConfiguration
     /// Optionally specifies the default lease time in seconds by setting <paramref name="defaultMessageLeaseSeconds"/> (default is <see cref="DefaultMessageLeaseSeconds"/>).
     /// Optionally specifies the default max parallelism by setting <paramref name="maxParallelism"/> (default is <see cref="DefaultMaxParallelism"/>).
     /// </summary>
-    public MongoDbTransportConfiguration(IMongoDatabase database, string collectionName, int defaultMessageLeaseSeconds = DefaultMessageLeaseSeconds, int maxParallelism = DefaultMaxParallelism, int maxDeliveryAttempts = DefaultMaxDeliveryAttempts)
+    public MongoDbTransportConfiguration(IMongoDatabase database, string collectionName, int defaultMessageLeaseSeconds = DefaultMessageLeaseSeconds, int maxParallelism = DefaultMaxParallelism, int maxDeliveryAttempts = DefaultMaxDeliveryAttempts, bool automaticallyCreateIndex = DefaultAutomaticallyCreateIndex)
     {
         if (database == null) throw new ArgumentNullException(nameof(database));
 
@@ -64,21 +59,29 @@ class MongoDbTransportConfiguration
         }
 
         MaxParallelism = maxParallelism;
-        Collection = InitializeCollection(collectionName, database);
+        Collection = InitializeCollection(collectionName, database, automaticallyCreateIndex);
         DefaultMessageLease = TimeSpan.FromSeconds(defaultMessageLeaseSeconds);
         MaxDeliveryAttempts = maxDeliveryAttempts;
     }
 
-    static IMongoCollection<BsonDocument> InitializeCollection(string collectionName, IMongoDatabase mongoDatabase)
+    static IMongoCollection<BsonDocument> InitializeCollection(string collectionName, IMongoDatabase mongoDatabase, bool automaticallyCreateIndex)
     {
-        IMongoCollection<BsonDocument> collection = mongoDatabase.GetCollection<BsonDocument>(collectionName);
-        BsonDocument index = new BsonDocument
+        var collection = mongoDatabase.GetCollection<BsonDocument>(collectionName);
+
+        if (automaticallyCreateIndex)
         {
-            {Fields.DestinationQueueName, 1},
-            {Fields.ReceiveTime, 1},
-            {Fields.DeliveryAttempts, 1},
-        };
-        collection.Indexes.CreateOne(new CreateIndexModel<BsonDocument>(new BsonDocumentIndexKeysDefinition<BsonDocument>(index)));
+            var index = new BsonDocument
+            {
+                {Fields.DestinationQueueName, 1},
+                {Fields.ReceiveTime, 1},
+                {Fields.DeliveryAttempts, 1},
+            };
+
+            var createIndexModel = new CreateIndexModel<BsonDocument>(new BsonDocumentIndexKeysDefinition<BsonDocument>(index));
+
+            collection.Indexes.CreateOne(createIndexModel);
+        }
+
         return collection;
     }
 

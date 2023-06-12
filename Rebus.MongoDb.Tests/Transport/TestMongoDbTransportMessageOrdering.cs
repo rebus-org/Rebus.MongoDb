@@ -94,12 +94,8 @@ public class TestMongoDbTransportMessageOrdering : FixtureBase
     {
         var loggerFactory = new ConsoleLoggerFactory(false);
 
-        var config = new MongoDbTransportOptions(MongoTestHelper.GetUrl()).SetInputQueueName(QueueName);
-
-        var transport = new MongoDbTransport(
-            loggerFactory,
-            config
-        );
+        var config = new MongoDbTransportOptions(MongoTestHelper.GetUrl());
+        var transport = new MongoDbTransport(loggerFactory, QueueName, config);
 
         return transport;
     }
