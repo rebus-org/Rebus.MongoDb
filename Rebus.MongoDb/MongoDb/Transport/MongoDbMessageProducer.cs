@@ -18,8 +18,8 @@ namespace Rebus.MongoDb.Transport;
 /// </summary>
 class MongoDbMessageProducer
 {
-    readonly AsyncSemaphore _semaphore;
     readonly MongoDbTransportConfiguration _config;
+    readonly AsyncSemaphore _semaphore;
 
     /// <summary>
     /// Creates the producer from the given configuration
@@ -54,8 +54,9 @@ class MongoDbMessageProducer
         {
             var uniqueMessageIdExceptions = exception.WriteErrors
                 .Where(error => error.Category == ServerErrorCategory.DuplicateKey)
-                .Select(error => new UniqueMessageIdViolationException(messageDocuments.Skip(error.Index).First().GetElement("_id").Value.AsString));
-            
+                .Select(error => new UniqueMessageIdViolationException(messageDocuments.Skip(error.Index).First().GetElement("_id").Value.AsString))
+                .ToList();
+
             if (uniqueMessageIdExceptions.Any())
             {
                 if (uniqueMessageIdExceptions.First() == uniqueMessageIdExceptions.Last())
@@ -83,7 +84,7 @@ class MongoDbMessageProducer
         }
 
         var receiveTime = DateTime.MinValue;
-        
+
         if (message.Headers.TryGetValue(Headers.DeferredUntil, out string deferredUntil))
         {
             receiveTime = deferredUntil.ToDateTimeOffset().DateTime.Subtract(_config.DefaultMessageLease);
@@ -94,7 +95,9 @@ class MongoDbMessageProducer
 
         return new BsonDocument
         {
-            {"_id", id},
+            // physical ID must be qualified by destination queue name to avoid a conflict when distributing multiple copies of the same message to multiple subscribers
+            {"_id", $"{destinationQueueName}/{id}"},
+
             {Fields.DestinationQueueName, destinationQueueName},
             {Fields.SendTime, DateTime.UtcNow},
             {Fields.DeliveryAttempts, 0},
