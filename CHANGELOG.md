@@ -46,11 +46,10 @@
 * Restored multi targeted build (Still need to be used in Net48 project)
 * Added MongoDb Transport - thanks [AGiorgetti] and [alkampfergit]
 
-## 8.0.0-alpha04
-* Remove MongoDB transport again, because it could lose messages and thus did not qualify as a proper Rebus transport
+## 8.0.0
 * Update MongoDB driver to 2.19.2
 * Update to Rebus 8
-* Bring back MongoDB transport - thanks [AlesDo]
+* New version of MongoDB transport - thanks [AlesDo]
 * Make it possible to opt out of index creation when using MongoDB as the transport
 
 

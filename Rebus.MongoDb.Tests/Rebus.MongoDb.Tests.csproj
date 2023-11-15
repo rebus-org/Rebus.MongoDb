@@ -5,10 +5,10 @@
 	</PropertyGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\Rebus.MongoDb\Rebus.MongoDb.csproj" />
-		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.2" />
-		<PackageReference Include="nunit" Version="3.13.3" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+		<PackageReference Include="nunit" Version="3.14.0" />
 		<PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
-		<PackageReference Include="rebus.tests.contracts" Version="8.0.0-alpha09" />
+		<PackageReference Include="rebus.tests.contracts" Version="8.0.1" />
 	</ItemGroup>
 	<ItemGroup>
 	  <Folder Include="Examples\" />
