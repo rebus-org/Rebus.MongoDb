@@ -52,8 +52,12 @@
 * New version of MongoDB transport - thanks [AlesDo]
 * Make it possible to opt out of index creation when using MongoDB as the transport
 
+## 8.1.0
+* Update MongoDB driver to 2.28.0 - thanks [micdah]
+
 
 [AGiorgetti]: https://github.com/AGiorgetti
 [AlesDo]: https://github.com/AlesDo
 [alkampfergit]: https://github.com/alkampfergit
 [cgehrmann]: https://github.com/cgehrmann
+[micdah]: https://github.com/micdah
