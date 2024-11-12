@@ -62,9 +62,13 @@ public class MongoDbSagaStorage : ISagaStorage, IInitializable
     {
         var collection = await GetCollection(sagaDataType);
 
+        var value = propertyValue is Guid guid
+            ? new BsonBinaryData(guid, GuidRepresentation.CSharpLegacy)
+            : BsonValue.Create(propertyValue);
+
         var criteria = propertyName == nameof(ISagaData.Id)
-            ? new BsonDocument { { "_id", BsonValue.Create(propertyValue) } }
-            : new BsonDocument { { propertyName, BsonValue.Create(propertyValue) } };
+            ? new BsonDocument { { "_id", value } }
+            : new BsonDocument { { propertyName, value } };
 
         var result = await collection.Find(criteria).FirstOrDefaultAsync().ConfigureAwait(false);
 
