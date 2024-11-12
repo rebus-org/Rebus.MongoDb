@@ -11,6 +11,12 @@ public class MongoTestHelper
 {
     public const string TestCategory = "mongodb";
 
+    static MongoTestHelper()
+    {
+        // One-time setup, use Standard Guid representation by default
+        BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
+    }
+
     public static MongoUrl GetUrl()
     {
         var suffix = TestConfig.Suffix;
@@ -48,7 +54,6 @@ public class MongoTestHelper
         {
             WriteConcern = WriteConcern.Acknowledged,
         };
-        BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
         return mongoClient.GetDatabase(url.DatabaseName, settings);
     }
 
