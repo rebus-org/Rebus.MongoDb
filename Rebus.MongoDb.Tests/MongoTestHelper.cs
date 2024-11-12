@@ -1,7 +1,5 @@
 ﻿using System;
 using MongoDB.Bson;
-using MongoDB.Bson.Serialization;
-using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
 using Rebus.Tests.Contracts;
 
@@ -46,6 +44,7 @@ public class MongoTestHelper
         var url = GetUrl();
         var settings = new MongoDatabaseSettings
         {
+            GuidRepresentation = GuidRepresentation.Standard,
             WriteConcern = WriteConcern.Acknowledged,
         };
         return mongoClient.GetDatabase(url.DatabaseName, settings);
