@@ -78,6 +78,9 @@ public class CanFollowGuidRepresentation : FixtureBase
         var database = MongoTestHelper.GetMongoDatabase();
         database.DropCollection(nameof(MyGuidRepresentationSagaData));
         database.DropCollection(nameof(StandardIdSagaData));
+        database.DropCollection(nameof(CSharpLegacyIdSagaData));
+        database.DropCollection(nameof(JavaLegacyIdSagaData));
+        database.DropCollection(nameof(PythonLegacyIdSagaData));
 
         _sagaStorage = new MongoDbSagaStorage(database, new ConsoleLoggerFactory(colored: false));
         _sagaStorage.Initialize();
