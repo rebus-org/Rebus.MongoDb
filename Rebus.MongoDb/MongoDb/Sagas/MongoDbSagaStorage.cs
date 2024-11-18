@@ -121,15 +121,17 @@ public class MongoDbSagaStorage : ISagaStorage, IInitializable
     /// <inheritdoc />
     public async Task Delete(ISagaData sagaData)
     {
-        var collection = await GetCollection(sagaData.GetType());
+        var sagaDataType = sagaData.GetType();
+        var collection = await GetCollection(sagaDataType);
 
-        var criteria = Builders<BsonDocument>.Filter.Eq("_id", sagaData.Id);
+        var criteria = Builders<BsonDocument>.Filter.Eq("_id",
+            GetPropertyValue(sagaDataType, nameof(ISagaData.Id), sagaData.Id));
 
         var result = await collection.DeleteManyAsync(criteria).ConfigureAwait(false);
 
         if (result.DeletedCount != 1)
         {
-            throw new ConcurrencyException($"Saga data {sagaData.GetType()} with ID {sagaData.Id} in collection {collection.CollectionNamespace} could not be deleted");
+            throw new ConcurrencyException($"Saga data {sagaDataType} with ID {sagaData.Id} in collection {collection.CollectionNamespace} could not be deleted");
         }
 
         sagaData.Revision++;

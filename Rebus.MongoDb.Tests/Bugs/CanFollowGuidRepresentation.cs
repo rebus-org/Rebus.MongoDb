@@ -49,7 +49,7 @@ public class CanFollowGuidRepresentation : FixtureBase
         BsonClassMap.RegisterClassMap<CSharpLegacyIdSagaData>(map =>
         {
             map.MapIdMember(obj => obj.Id)
-                .SetSerializer(new GuidSerializer(GuidRepresentation.Standard));
+                .SetSerializer(new GuidSerializer(GuidRepresentation.CSharpLegacy));
 
             map.MapMember(obj => obj.Revision);
             map.MapMember(obj => obj.State);
@@ -58,7 +58,7 @@ public class CanFollowGuidRepresentation : FixtureBase
         BsonClassMap.RegisterClassMap<JavaLegacyIdSagaData>(map =>
         {
             map.MapIdMember(obj => obj.Id)
-                .SetSerializer(new GuidSerializer(GuidRepresentation.Standard));
+                .SetSerializer(new GuidSerializer(GuidRepresentation.JavaLegacy));
 
             map.MapMember(obj => obj.Revision);
             map.MapMember(obj => obj.State);
@@ -66,7 +66,7 @@ public class CanFollowGuidRepresentation : FixtureBase
         BsonClassMap.RegisterClassMap<PythonLegacyIdSagaData>(map =>
         {
             map.MapIdMember(obj => obj.Id)
-                .SetSerializer(new GuidSerializer(GuidRepresentation.Standard));
+                .SetSerializer(new GuidSerializer(GuidRepresentation.PythonLegacy));
 
             map.MapMember(obj => obj.Revision);
             map.MapMember(obj => obj.State);
@@ -123,6 +123,23 @@ public class CanFollowGuidRepresentation : FixtureBase
         Assert.That(actual, Is.Not.Null
             .And.InstanceOf(initial.GetType())
             .With.Property("State").EqualTo("Updated"));
+    }
+
+    [Test]
+    [TestCase(nameof(StandardIdSagaData))]
+    [TestCase(nameof(CSharpLegacyIdSagaData))]
+    [TestCase(nameof(JavaLegacyIdSagaData))]
+    [TestCase(nameof(PythonLegacyIdSagaData))]
+    public async Task CanDelete(string implementation)
+    {
+        var id = Guid.NewGuid();
+        var initial = CreateSagaDataWithState(implementation, id, "Initial");
+        await _sagaStorage.Insert(initial, None);
+
+        await _sagaStorage.Delete(initial);
+
+        var actual = await _sagaStorage.Find(initial.GetType(), nameof(ISagaData.Id), id);
+        Assert.That(actual, Is.Null);
     }
 
     private static ISagaDataWithState CreateSagaDataWithState(string implementation, Guid id, string state)
