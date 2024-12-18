@@ -55,9 +55,14 @@
 ## 8.1.0
 * Update MongoDB driver to 2.28.0 - thanks [micdah]
 
+## 9.0.0
+* Update MongoDB driver to 3.0.0 - thanks [micdah] (NOTE: v3 has breaking changes, where especially GUIDs need special care - read more here: [mongodb-v3-guid-help])
+
 
 [AGiorgetti]: https://github.com/AGiorgetti
 [AlesDo]: https://github.com/AlesDo
 [alkampfergit]: https://github.com/alkampfergit
 [cgehrmann]: https://github.com/cgehrmann
 [micdah]: https://github.com/micdah
+
+[mongodb-v3-guid-help]: https://github.com/rebus-org/Rebus.MongoDb/pull/23#issuecomment-2505633125
