@@ -3,7 +3,7 @@
 		<OutputType>Library</OutputType>
 		<RootNamespace>Rebus</RootNamespace>
 		<AssemblyName>Rebus.MongoDb</AssemblyName>
-		<TargetFrameworks>netstandard2.0</TargetFrameworks>
+		<TargetFrameworks>net6.0;netstandard2.1;net472</TargetFrameworks>
 		<LangVersion>11</LangVersion>
 		<Authors>mookid8000</Authors>
 		<PackageProjectUrl>https://rebus.fm/what-is-rebus/</PackageProjectUrl>
@@ -24,8 +24,7 @@
 		<None Include="icon.png" Pack="true" PackagePath="" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="mongodb.driver" Version="2.28.0" />
-		<PackageReference Include="MongoDB.Driver.GridFS" Version="2.28.0" />
+		<PackageReference Include="mongodb.driver" Version="3.0.0" />
 		<PackageReference Include="Nito.AsyncEx" Version="5.1.2" />
 		<PackageReference Include="rebus" Version="8.0.1" />
 	</ItemGroup>

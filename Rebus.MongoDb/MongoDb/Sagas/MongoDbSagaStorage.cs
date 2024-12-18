@@ -62,9 +62,10 @@ public class MongoDbSagaStorage : ISagaStorage, IInitializable
     {
         var collection = await GetCollection(sagaDataType);
 
+        var value = GetPropertyValue(sagaDataType, propertyName, propertyValue);
         var criteria = propertyName == nameof(ISagaData.Id)
-            ? new BsonDocument { { "_id", BsonValue.Create(propertyValue) } }
-            : new BsonDocument { { propertyName, BsonValue.Create(propertyValue) } };
+            ? new BsonDocument { { "_id", value } }
+            : new BsonDocument { { propertyName, value } };
 
         var result = await collection.Find(criteria).FirstOrDefaultAsync().ConfigureAwait(false);
 
@@ -96,35 +97,41 @@ public class MongoDbSagaStorage : ISagaStorage, IInitializable
     /// <inheritdoc />
     public async Task Update(ISagaData sagaData, IEnumerable<ISagaCorrelationProperty> correlationProperties)
     {
-        var collection = await GetCollection(sagaData.GetType(), correlationProperties);
+        var sagaDataType = sagaData.GetType();
+        var collection = await GetCollection(sagaDataType, correlationProperties);
 
         var criteria = Builders<BsonDocument>.Filter.And(
-            Builders<BsonDocument>.Filter.Eq("_id", sagaData.Id),
+            Builders<BsonDocument>.Filter.Eq("_id",
+                GetPropertyValue(sagaDataType, nameof(ISagaData.Id), sagaData.Id)),
             Builders<BsonDocument>.Filter.Eq(nameof(ISagaData.Revision), sagaData.Revision)
         );
 
         sagaData.Revision++;
 
-        var result = await collection.ReplaceOneAsync(criteria, sagaData.ToBsonDocument(sagaData.GetType())).ConfigureAwait(false);
+        var result = await collection.ReplaceOneAsync(criteria, sagaData.ToBsonDocument(sagaDataType))
+            .ConfigureAwait(false);
 
         if (!result.IsModifiedCountAvailable || result.ModifiedCount != 1)
         {
-            throw new ConcurrencyException($"Saga data {sagaData.GetType()} with ID {sagaData.Id} in collection {collection.CollectionNamespace} could not be updated!");
+            throw new ConcurrencyException(
+                $"Saga data {sagaDataType} with ID {sagaData.Id} in collection {collection.CollectionNamespace} could not be updated!");
         }
     }
 
     /// <inheritdoc />
     public async Task Delete(ISagaData sagaData)
     {
-        var collection = await GetCollection(sagaData.GetType());
+        var sagaDataType = sagaData.GetType();
+        var collection = await GetCollection(sagaDataType);
 
-        var criteria = Builders<BsonDocument>.Filter.Eq("_id", sagaData.Id);
+        var criteria = Builders<BsonDocument>.Filter.Eq("_id",
+            GetPropertyValue(sagaDataType, nameof(ISagaData.Id), sagaData.Id));
 
         var result = await collection.DeleteManyAsync(criteria).ConfigureAwait(false);
 
         if (result.DeletedCount != 1)
         {
-            throw new ConcurrencyException($"Saga data {sagaData.GetType()} with ID {sagaData.Id} in collection {collection.CollectionNamespace} could not be deleted");
+            throw new ConcurrencyException($"Saga data {sagaDataType} with ID {sagaData.Id} in collection {collection.CollectionNamespace} could not be deleted");
         }
 
         sagaData.Revision++;
@@ -301,5 +308,23 @@ in BSON documents.");
                 map.MapMember(obj => obj.Body);
             });
         }
+    }
+
+    private static BsonValue GetPropertyValue(Type sagaDataType, string propertyName, object propertyValue)
+    {
+        if (BsonSerializer.LookupSerializer(sagaDataType) is IBsonDocumentSerializer serializer &&
+            serializer.TryGetMemberSerializationInfo(propertyName, out var memberSerializationInfo))
+        {
+            try
+            {
+                return memberSerializationInfo.SerializeValue(propertyValue);
+            }
+            catch (InvalidCastException)
+            {
+                // Can occur if trying to correlate on id using string value
+            }
+        }
+
+        return BsonValue.Create(propertyValue);
     }
 }
