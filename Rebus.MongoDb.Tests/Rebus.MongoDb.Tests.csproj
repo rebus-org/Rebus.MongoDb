@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
 	<PropertyGroup>
 		<OutputType>Library</OutputType>
-		<TargetFrameworks>net70</TargetFrameworks>
+		<TargetFrameworks>net90</TargetFrameworks>
 	</PropertyGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\Rebus.MongoDb\Rebus.MongoDb.csproj" />
@@ -9,8 +9,5 @@
 		<PackageReference Include="nunit" Version="3.14.0" />
 		<PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
 		<PackageReference Include="rebus.tests.contracts" Version="8.0.1" />
-	</ItemGroup>
-	<ItemGroup>
-	  <Folder Include="Examples\" />
 	</ItemGroup>
 </Project>
